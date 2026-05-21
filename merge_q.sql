@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th5 21, 2026 lúc 07:41 PM
+-- Thời gian đã tạo: Th5 21, 2026 lúc 07:51 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -565,7 +565,7 @@ INSERT INTO `sessions` (`session_id`, `class_id`, `session_date`, `shift_id`, `s
 CREATE TABLE `session_reviews` (
   `review_id` int(11) NOT NULL,
   `session_id` int(11) NOT NULL,
-  `student_id` int(11) DEFAULT NULL,
+  `student_id` int(11) NOT NULL,
   `review_text` text NOT NULL,
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
@@ -575,7 +575,7 @@ CREATE TABLE `session_reviews` (
 --
 
 INSERT INTO `session_reviews` (`review_id`, `session_id`, `student_id`, `review_text`, `created_at`) VALUES
-(1, 49, NULL, 'Giỏi', '2026-05-17 14:45:29');
+(1, 49, 0, 'Giỏi', '2026-05-17 14:45:29');
 
 -- --------------------------------------------------------
 
@@ -1061,7 +1061,8 @@ ALTER TABLE `sessions`
 --
 ALTER TABLE `session_reviews`
   ADD PRIMARY KEY (`review_id`),
-  ADD UNIQUE KEY `uq_session_reviews_session_student` (`session_id`,`student_id`);
+  ADD UNIQUE KEY `uq_session_reviews_session_student` (`session_id`,`student_id`),
+  ADD KEY `fk_lesson_reviews_student` (`student_id`);
 
 --
 -- Chỉ mục cho bảng `session_teachers`
@@ -1378,6 +1379,13 @@ ALTER TABLE `sessions`
   ADD CONSTRAINT `fk_sessions_classes` FOREIGN KEY (`class_id`) REFERENCES `classes` (`class_id`),
   ADD CONSTRAINT `fk_sessions_rooms` FOREIGN KEY (`room_id`) REFERENCES `rooms` (`room_id`),
   ADD CONSTRAINT `fk_sessions_shifts` FOREIGN KEY (`shift_id`) REFERENCES `shifts` (`shift_id`);
+
+--
+-- Các ràng buộc cho bảng `session_reviews`
+--
+ALTER TABLE `session_reviews`
+  ADD CONSTRAINT `fk_lesson_reviews_session` FOREIGN KEY (`session_id`) REFERENCES `sessions` (`session_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_lesson_reviews_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Các ràng buộc cho bảng `session_teachers`
