@@ -137,7 +137,7 @@ class ParentController extends Controller
 
         $vnp_TxnRef = $id . "_" . time();
         $vnp_Amount = (int) ($remaining * 100);
-        $vnp_Returnurl = "http://98.92.64.24/source/app/public/index.php?module=parent&action=vnpayReturn";
+        $vnp_Returnurl = "https://itcenter.jo3.org/index.php?module=parent&action=vnpayReturn";
 
         $inputData = [
             "vnp_Version" => "2.1.0",
