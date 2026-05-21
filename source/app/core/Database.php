@@ -1,9 +1,9 @@
 <?php
 class Database {
-    private $host = "localhost";
+    private $host = "127.0.0.1";
     private $dbname = "merge_q";
-    private $username = "root";
-    private $password = "";
+    private $username = "itcenter";
+    private $password = "123456";
 
     public $conn;
 

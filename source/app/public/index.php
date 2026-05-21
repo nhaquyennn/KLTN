@@ -1,10 +1,13 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 session_start();
 
 // =========================
 // CONFIG
 // =========================
-define('BASE_URL', '/KLTN/source/app/public/');
+define('BASE_URL', '/');
 define('ROOT_PATH', dirname(__DIR__));
 
 // =========================
@@ -87,10 +90,10 @@ if (!class_exists($controllerName)) {
 // =========================
 require_once ROOT_PATH . "/core/Database.php";
 
-$db = new PDO(
-    "mysql:host=localhost;dbname=merge_q;charset=utf8",
-    "root",
-    ""
+$db= new PDO(
+    "mysql:host=127.0.0.1;dbname=merge_q;charset=utf8",
+    "itcenter",
+    "123456"
 );
 
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

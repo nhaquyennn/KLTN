@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-define('BASE_URL', '/KLTN/source/dist/app/public/');
+define('BASE_URL', '/source/dist/app/public/');
 
 /*
 |--------------------------------------------------------------------------
