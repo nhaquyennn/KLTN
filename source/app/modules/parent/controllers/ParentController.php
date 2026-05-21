@@ -19,6 +19,7 @@ class ParentController extends Controller
         $students = $data['students'];
         $selectedStudentId = $this->parentModel->getSelectedStudentId($students);
         $summary = $selectedStudentId ? $this->parentModel->getStudentSummary($selectedStudentId) : [];
+        $learningTracker = $selectedStudentId ? $this->parentModel->getLearningTrackerData($selectedStudentId) : [];
         $upcomingSessions = $selectedStudentId ? $this->parentModel->getUpcomingSessions($selectedStudentId, 3) : [];
         $reviews = $selectedStudentId ? $this->parentModel->getLatestReviews($selectedStudentId, 3) : [];
         $parentInitials = $this->getInitials($parentName);

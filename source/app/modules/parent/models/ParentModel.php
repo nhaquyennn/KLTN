@@ -94,6 +94,217 @@ class ParentModel
         ];
     }
 
+    public function getLearningTrackerData($studentId)
+    {
+        $lessonSelect = $this->hasColumn('sessions', 'lesson_content')
+            ? 's.lesson_content'
+            : 'NULL';
+
+        $overview = $this->getLearningOverview($studentId);
+        $upcomingSession = $this->getNearestUpcomingSession($studentId, $lessonSelect);
+        $latestCompletedSession = $this->getLatestCompletedSession($studentId, $lessonSelect);
+        $history = $this->getLearningHistory($studentId, $lessonSelect);
+
+        return [
+            'overview' => $overview,
+            'upcoming_session' => $upcomingSession,
+            'latest_completed_session' => $latestCompletedSession,
+            'history' => $history,
+            'schema_notes' => $this->getLearningTrackerSchemaNotes()
+        ];
+    }
+
+    private function getLearningOverview($studentId)
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                st.student_id,
+                st.date_of_birth,
+                u_s.name AS student_name,
+                COALESCE(NULLIF(st.parent_name, ''), u_p.name, 'Phụ huynh') AS parent_name,
+                COALESCE(NULLIF(st.parent_phone, ''), u_p.phone, '') AS parent_phone,
+                GROUP_CONCAT(DISTINCT co.name ORDER BY co.name SEPARATOR ', ') AS course_names,
+                COUNT(DISTINCT CASE WHEN s.status <> 'cancelled' OR s.status IS NULL THEN s.session_id END) AS total_sessions,
+                COUNT(DISTINCT CASE WHEN s.status = 'done' THEN s.session_id END) AS completed_sessions
+            FROM students st
+            JOIN users u_s ON u_s.user_id = st.user_id
+            LEFT JOIN parent_student ps ON ps.student_id = st.student_id
+            LEFT JOIN parents p ON p.parent_id = ps.parent_id
+            LEFT JOIN users u_p ON u_p.user_id = p.user_id
+            LEFT JOIN enrollments e ON e.student_id = st.student_id AND e.status <> 'dropped'
+            LEFT JOIN classes c ON c.class_id = e.class_id
+            LEFT JOIN courses co ON co.course_id = c.course_id
+            LEFT JOIN sessions s ON s.class_id = c.class_id
+            WHERE st.student_id = ?
+            GROUP BY st.student_id
+        ");
+
+        $stmt->execute([(int) $studentId]);
+        $overview = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+        $total = (int) ($overview['total_sessions'] ?? 0);
+        $completed = (int) ($overview['completed_sessions'] ?? 0);
+        $overview['remaining_sessions'] = max(0, $total - $completed);
+
+        return $overview;
+    }
+
+    private function getNearestUpcomingSession($studentId, $lessonSelect)
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                s.session_id,
+                s.session_date,
+                s.status,
+                {$lessonSelect} AS lesson_content,
+                sh.name AS shift_name,
+                sh.start_time,
+                sh.end_time,
+                r.name AS room_name,
+                co.name AS course_name,
+                c.class_code,
+                GROUP_CONCAT(DISTINCT u_t.name ORDER BY st.role SEPARATOR ', ') AS teachers
+            FROM enrollments e
+            JOIN classes c ON c.class_id = e.class_id
+            JOIN courses co ON co.course_id = c.course_id
+            JOIN sessions s ON s.class_id = c.class_id
+            LEFT JOIN shifts sh ON sh.shift_id = s.shift_id
+            LEFT JOIN rooms r ON r.room_id = s.room_id
+            LEFT JOIN session_teachers st ON st.session_id = s.session_id
+            LEFT JOIN teachers t ON t.teacher_id = st.teacher_id
+            LEFT JOIN users u_t ON u_t.user_id = t.user_id
+            WHERE e.student_id = ?
+            AND e.status <> 'dropped'
+            AND s.status <> 'cancelled'
+            AND (
+                s.session_date > CURDATE()
+                OR (s.session_date = CURDATE() AND (sh.start_time IS NULL OR sh.start_time >= CURTIME()))
+            )
+            GROUP BY s.session_id
+            ORDER BY s.session_date ASC, sh.start_time ASC
+            LIMIT 1
+        ");
+
+        $stmt->execute([(int) $studentId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    private function getLatestCompletedSession($studentId, $lessonSelect)
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                s.session_id,
+                s.session_date,
+                s.status,
+                {$lessonSelect} AS lesson_content,
+                sh.name AS shift_name,
+                sh.start_time,
+                sh.end_time,
+                r.name AS room_name,
+                co.name AS course_name,
+                c.class_code,
+                a.status AS attendance_status,
+                sr.review_text,
+                GROUP_CONCAT(DISTINCT u_t.name ORDER BY st.role SEPARATOR ', ') AS teachers
+            FROM enrollments e
+            JOIN classes c ON c.class_id = e.class_id
+            JOIN courses co ON co.course_id = c.course_id
+            JOIN sessions s ON s.class_id = c.class_id
+            LEFT JOIN shifts sh ON sh.shift_id = s.shift_id
+            LEFT JOIN rooms r ON r.room_id = s.room_id
+            LEFT JOIN attendances a ON a.session_id = s.session_id AND a.student_id = e.student_id
+            LEFT JOIN session_reviews sr ON sr.session_id = s.session_id AND sr.student_id = e.student_id
+            LEFT JOIN session_teachers st ON st.session_id = s.session_id
+            LEFT JOIN teachers t ON t.teacher_id = st.teacher_id
+            LEFT JOIN users u_t ON u_t.user_id = t.user_id
+            WHERE e.student_id = ?
+            AND e.status <> 'dropped'
+            AND s.status = 'done'
+            GROUP BY s.session_id
+            ORDER BY s.session_date DESC, sh.start_time DESC
+            LIMIT 1
+        ");
+
+        $stmt->execute([(int) $studentId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    private function getLearningHistory($studentId, $lessonSelect)
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                s.session_id,
+                s.session_date,
+                s.status,
+                {$lessonSelect} AS lesson_content,
+                sh.name AS shift_name,
+                sh.start_time,
+                sh.end_time,
+                r.name AS room_name,
+                co.name AS course_name,
+                c.class_code,
+                a.status AS attendance_status,
+                sr.review_text,
+                GROUP_CONCAT(DISTINCT u_t.name ORDER BY st.role SEPARATOR ', ') AS teachers
+            FROM enrollments e
+            JOIN classes c ON c.class_id = e.class_id
+            JOIN courses co ON co.course_id = c.course_id
+            JOIN sessions s ON s.class_id = c.class_id
+            LEFT JOIN shifts sh ON sh.shift_id = s.shift_id
+            LEFT JOIN rooms r ON r.room_id = s.room_id
+            LEFT JOIN attendances a ON a.session_id = s.session_id AND a.student_id = e.student_id
+            LEFT JOIN session_reviews sr ON sr.session_id = s.session_id AND sr.student_id = e.student_id
+            LEFT JOIN session_teachers st ON st.session_id = s.session_id
+            LEFT JOIN teachers t ON t.teacher_id = st.teacher_id
+            LEFT JOIN users u_t ON u_t.user_id = t.user_id
+            WHERE e.student_id = ?
+            AND e.status <> 'dropped'
+            AND s.status <> 'cancelled'
+            GROUP BY s.session_id
+            ORDER BY s.session_date ASC, sh.start_time ASC
+        ");
+
+        $stmt->execute([(int) $studentId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function getLearningTrackerSchemaNotes()
+    {
+        $notes = [];
+
+        if (!$this->hasColumn('sessions', 'lesson_content')) {
+            $notes[] = [
+                'table' => 'sessions',
+                'field' => 'lesson_content',
+                'sql' => 'ALTER TABLE sessions ADD COLUMN lesson_content TEXT NULL AFTER note;'
+            ];
+        }
+
+        if (!$this->hasColumn('session_reviews', 'review_text')) {
+            $notes[] = [
+                'table' => 'session_reviews',
+                'field' => 'review_text',
+                'sql' => 'ALTER TABLE session_reviews ADD COLUMN review_text TEXT NOT NULL AFTER student_id;'
+            ];
+        }
+
+        return $notes;
+    }
+
+    private function hasColumn($table, $column)
+    {
+        $stmt = $this->db->prepare("
+            SELECT COUNT(*)
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = ?
+            AND COLUMN_NAME = ?
+        ");
+        $stmt->execute([$table, $column]);
+
+        return (int) $stmt->fetchColumn() > 0;
+    }
+
     public function getUpcomingSessions($studentId, $limit = 5)
     {
         $stmt = $this->db->prepare("
