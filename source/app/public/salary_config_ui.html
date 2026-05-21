@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cấu hình lương giảng viên — 3C Center</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f4f0;color:#1a1a18;padding:20px;display:flex;flex-direction:column;gap:16px}
+.card{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden}
+.card-head{padding:14px 18px;border-bottom:1px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:14px;font-weight:500;color:#1a1a18}
+.card-sub{font-size:12px;color:#6b6a65;margin-top:2px}
+.btn{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid rgba(0,0,0,.1);background:#fff;color:#1a1a18}
+.btn-primary{background:#534AB7;color:#fff;border-color:#534AB7}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:8px;cursor:pointer;border:1px solid rgba(0,0,0,.1);background:#fff;color:#6b6a65}
+
+/* type toggle */
+.type-toggle{display:flex;border:1px solid rgba(0,0,0,.1);border-radius:8px;overflow:hidden;width:fit-content}
+.type-btn{padding:7px 18px;font-size:13px;cursor:pointer;background:#fff;color:#6b6a65;border:none;font-family:inherit}
+.type-btn.active{background:#534AB7;color:#fff;font-weight:500}
+
+/* level table */
+.level-table{width:100%;border-collapse:collapse}
+.level-table th{font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;padding:10px 16px;text-align:left;border-bottom:1px solid rgba(0,0,0,.06);background:#f9f9f7}
+.level-table td{padding:12px 16px;font-size:13px;color:#1a1a18;border-bottom:1px solid rgba(0,0,0,.06);vertical-align:middle}
+.level-table tr:last-child td{border-bottom:none}
+.level-table tr:hover td{background:#f9f9f7}
+.level-badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;font-size:12px;font-weight:500}
+.l1{background:#f1efe8;color:#444441}
+.l2{background:#e1f5ee;color:#085041}
+.l3{background:#eeedfe;color:#3c3489}
+.l4{background:#faeeda;color:#633806}
+.l5{background:#faece7;color:#712b13}
+.rate-input{width:110px;padding:5px 8px;font-size:13px;border:1px solid rgba(0,0,0,.1);border-radius:6px;background:#f5f4f0;color:#1a1a18;font-family:inherit}
+.sessions-input{width:70px;padding:5px 8px;font-size:13px;border:1px solid rgba(0,0,0,.1);border-radius:6px;background:#f5f4f0;color:#1a1a18;font-family:inherit}
+.mini-bar{height:5px;background:#f0eeea;border-radius:3px;overflow:hidden;margin-top:4px}
+.mini-fill{height:100%;border-radius:3px}
+
+/* teacher list */
+.teacher-row{display:grid;grid-template-columns:2fr 1fr 1.5fr 1.5fr 1.2fr auto;gap:12px;align-items:center;padding:12px 18px;border-bottom:1px solid rgba(0,0,0,.06)}
+.teacher-row:last-child{border-bottom:none}
+.teacher-row:hover{background:#f9f9f7}
+.teacher-name{font-size:13px;font-weight:500;color:#1a1a18}
+.teacher-type-txt{font-size:12px;color:#6b6a65;margin-top:2px}
+.type-tag{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500;white-space:nowrap}
+.tag-session{background:#eeedfe;color:#3c3489}
+.tag-fixed{background:#e1f5ee;color:#085041}
+
+/* payroll */
+.payroll-head{background:#f9f9f7;font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;padding:9px 18px;display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1.2fr;gap:12px;border-bottom:1px solid rgba(0,0,0,.06)}
+.payroll-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1.2fr;gap:12px;align-items:center;padding:11px 18px;border-bottom:1px solid rgba(0,0,0,.06);font-size:13px}
+.payroll-row:last-child{border-bottom:none}
+.payroll-row:hover{background:#f9f9f7}
+.editable{padding:4px 8px;border-radius:6px;border:1px solid rgba(0,0,0,.1);font-size:13px;width:90px;background:#f5f4f0;color:#1a1a18;font-family:inherit}
+.total-col{font-size:14px;font-weight:500;color:#534AB7}
+.alert-bar{background:#faeeda;border:1px solid #ef9f27;border-radius:8px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+.alert-left{display:flex;align-items:center;gap:10px}
+.alert-icon{width:28px;height:28px;border-radius:8px;background:#ef9f27;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+</style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div style="font-size:18px;font-weight:500">Cấu hình lương giảng viên</div>
+      <div style="font-size:13px;color:#6b6a65;margin-top:3px">Quản lý bậc lương, theo dõi tiến độ và tính lương tháng</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn">Xuất bảng lương</button>
+      <button class="btn btn-primary">Tính lương tháng 3</button>
+    </div>
+  </div>
+
+  <!-- Cấu hình bậc lương -->
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="card-title">Cấu hình bậc lương</div>
+        <div class="card-sub">Thiết lập mức lương và điều kiện lên bậc</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="type-toggle">
+          <button class="type-btn active" onclick="switchType(this,'per_session')">Lương theo buổi</button>
+          <button class="type-btn" onclick="switchType(this,'monthly')">Lương cố định</button>
+        </div>
+        <button class="btn btn-primary" onclick="saveLevels()">Lưu cấu hình</button>
+      </div>
+    </div>
+
+    <table class="level-table">
+      <thead>
+        <tr>
+          <th style="width:60px">Bậc</th>
+          <th>Tên bậc</th>
+          <th>Buổi tích lũy để đạt</th>
+          <th id="rate-header">Lương / buổi</th>
+          <th>Số GV đang ở bậc này</th>
+          <th style="width:80px"></th>
+        </tr>
+      </thead>
+      <tbody id="level-tbody">
+        <tr>
+          <td><span class="level-badge l1">1</span></td>
+          <td><input style="border:1px solid rgba(0,0,0,.1);border-radius:6px;padding:5px 8px;font-size:13px;width:180px;background:#f5f4f0;font-family:inherit" value="Bậc 1 — Mới vào"></td>
+          <td><input class="sessions-input" value="0" readonly style="color:#aaa"> buổi</td>
+          <td><input class="rate-input" value="50.000"> đ</td>
+          <td><div style="font-size:13px;font-weight:500;color:#1a1a18">2 GV</div><div class="mini-bar"><div class="mini-fill" style="width:40%;background:#888780"></div></div></td>
+          <td><button class="btn-sm">Sửa</button></td>
+        </tr>
+        <tr>
+          <td><span class="level-badge l2">2</span></td>
+          <td><input style="border:1px solid rgba(0,0,0,.1);border-radius:6px;padding:5px 8px;font-size:13px;width:180px;background:#f5f4f0;font-family:inherit" value="Bậc 2 — Cơ bản"></td>
+          <td><input class="sessions-input" value="30"> buổi</td>
+          <td><input class="rate-input" value="100.000"> đ</td>
+          <td><div style="font-size:13px;font-weight:500;color:#1a1a18">1 GV</div><div class="mini-bar"><div class="mini-fill" style="width:20%;background:#1D9E75"></div></div></td>
+          <td><button class="btn-sm">Sửa</button></td>
+        </tr>
+        <tr>
+          <td><span class="level-badge l3">3</span></td>
+          <td><input style="border:1px solid rgba(0,0,0,.1);border-radius:6px;padding:5px 8px;font-size:13px;width:180px;background:#f5f4f0;font-family:inherit" value="Bậc 3 — Khá"></td>
+          <td><input class="sessions-input" value="60"> buổi</td>
+          <td><input class="rate-input" value="120.000"> đ</td>
+          <td><div style="font-size:13px;font-weight:500;color:#1a1a18">0 GV</div><div class="mini-bar"><div class="mini-fill" style="width:0%;background:#534AB7"></div></div></td>
+          <td><button class="btn-sm">Sửa</button></td>
+        </tr>
+        <tr>
+          <td><span class="level-badge l4">4</span></td>
+          <td><input style="border:1px solid rgba(0,0,0,.1);border-radius:6px;padding:5px 8px;font-size:13px;width:180px;background:#f5f4f0;font-family:inherit" value="Bậc 4 — Giỏi"></td>
+          <td><input class="sessions-input" value="90"> buổi</td>
+          <td><input class="rate-input" value="140.000"> đ</td>
+          <td><div style="font-size:13px;font-weight:500;color:#1a1a18">0 GV</div><div class="mini-bar"><div class="mini-fill" style="width:0%;background:#BA7517"></div></div></td>
+          <td><button class="btn-sm">Sửa</button></td>
+        </tr>
+        <tr>
+          <td><span class="level-badge l5">5</span></td>
+          <td><input style="border:1px solid rgba(0,0,0,.1);border-radius:6px;padding:5px 8px;font-size:13px;width:180px;background:#f5f4f0;font-family:inherit" value="Bậc 5 — Xuất sắc"></td>
+          <td><input class="sessions-input" value="120"> buổi</td>
+          <td><input class="rate-input" value="160.000"> đ</td>
+          <td><div style="font-size:13px;font-weight:500;color:#1a1a18">0 GV</div><div class="mini-bar"><div class="mini-fill" style="width:0%;background:#D85A30"></div></div></td>
+          <td><button class="btn-sm">Sửa</button></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="padding:12px 18px;background:#f9f9f7;border-top:1px solid rgba(0,0,0,.06);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:12px;color:#6b6a65">Hệ thống tự động lên bậc sau mỗi buổi dạy khi đủ điều kiện</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#6b6a65">
+        <div style="width:8px;height:8px;border-radius:50%;background:#1D9E75"></div>
+        Trigger tự động kích hoạt
+      </div>
+    </div>
+  </div>
+
+  <!-- Tiến độ GV -->
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="card-title">Tiến độ bậc lương giảng viên</div>
+        <div class="card-sub">Theo dõi tổng buổi tích lũy và dự báo lên bậc</div>
+      </div>
+      <button class="btn">Xem tất cả</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:2fr 1fr 1.5fr 1.5fr 1.2fr auto;gap:12px;padding:9px 18px;background:#f9f9f7;border-bottom:1px solid rgba(0,0,0,.06)">
+      <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em">Giảng viên</div>
+      <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em">Loại</div>
+      <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em">Bậc hiện tại</div>
+      <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em">Tiến độ lên bậc</div>
+      <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em">Lương hiện tại</div>
+      <div></div>
+    </div>
+
+    <div class="teacher-row">
+      <div><div class="teacher-name">Nguyễn Văn Tuấn</div><div class="teacher-type-txt">Dạy: Robotics, Python</div></div>
+      <div><span class="type-tag tag-session">Theo buổi</span></div>
+      <div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="level-badge l2" style="width:22px;height:22px;font-size:11px">2</span>
+          <span style="font-size:13px;font-weight:500">Bậc 2</span>
+        </div>
+        <div style="font-size:11px;color:#6b6a65;margin-top:2px">100.000đ / buổi</div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#6b6a65;margin-bottom:4px">
+          <span>42 / 60 buổi → Bậc 3</span>
+          <span style="font-weight:500;color:#534AB7">70%</span>
+        </div>
+        <div class="mini-bar" style="height:7px"><div class="mini-fill" style="width:70%;background:#534AB7"></div></div>
+        <div style="font-size:11px;color:#6b6a65;margin-top:3px">Còn 18 buổi nữa lên bậc 3</div>
+      </div>
+      <div><div style="font-size:14px;font-weight:500">100.000đ</div><div style="font-size:11px;color:#6b6a65">/ buổi</div></div>
+      <button class="btn-sm">Chi tiết</button>
+    </div>
+
+    <div class="teacher-row">
+      <div><div class="teacher-name">Trần Thị Linh</div><div class="teacher-type-txt">Dạy: Văn phòng, Đồ họa</div></div>
+      <div><span class="type-tag tag-session">Theo buổi</span></div>
+      <div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="level-badge l1" style="width:22px;height:22px;font-size:11px">1</span>
+          <span style="font-size:13px;font-weight:500">Bậc 1</span>
+        </div>
+        <div style="font-size:11px;color:#6b6a65;margin-top:2px">50.000đ / buổi</div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#6b6a65;margin-bottom:4px">
+          <span>27 / 30 buổi → Bậc 2</span>
+          <span style="font-weight:500;color:#BA7517">90%</span>
+        </div>
+        <div class="mini-bar" style="height:7px"><div class="mini-fill" style="width:90%;background:#BA7517"></div></div>
+        <div style="font-size:11px;color:#BA7517;margin-top:3px;font-weight:500">Còn 3 buổi nữa lên bậc 2!</div>
+      </div>
+      <div><div style="font-size:14px;font-weight:500">50.000đ</div><div style="font-size:11px;color:#6b6a65">/ buổi</div></div>
+      <button class="btn-sm">Chi tiết</button>
+    </div>
+
+    <div class="teacher-row">
+      <div><div class="teacher-name">Lê Văn Minh</div><div class="teacher-type-txt">Dạy: Scratch</div></div>
+      <div><span class="type-tag tag-fixed">Cố định</span></div>
+      <div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="level-badge l3" style="width:22px;height:22px;font-size:11px">3</span>
+          <span style="font-size:13px;font-weight:500">Bậc 3</span>
+        </div>
+        <div style="font-size:11px;color:#6b6a65;margin-top:2px">Lương tháng cố định</div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:#6b6a65">Không áp dụng</div>
+        <div style="font-size:11px;color:#aaa;margin-top:2px">Lương cố định theo tháng</div>
+      </div>
+      <div><div style="font-size:14px;font-weight:500">8.000.000đ</div><div style="font-size:11px;color:#6b6a65">/ tháng</div></div>
+      <button class="btn-sm">Chi tiết</button>
+    </div>
+  </div>
+
+  <!-- Bảng lương -->
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="card-title">Bảng lương tháng 3 / 2026</div>
+        <div class="card-sub">Lương cơ bản + thưởng − phạt. Chỉnh sửa trước khi xác nhận.</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn">Lưu nháp</button>
+        <button class="btn btn-primary" onclick="confirmPayroll()">Xác nhận & gửi</button>
+      </div>
+    </div>
+
+    <div class="payroll-head">
+      <div>Giảng viên</div><div>Số buổi</div><div>Lương cơ bản</div>
+      <div>Thưởng</div><div>Phạt</div><div>Tổng nhận</div>
+    </div>
+
+    <div class="payroll-row" id="row-1">
+      <div><div style="font-weight:500">Nguyễn Văn Tuấn</div><div style="font-size:11px;color:#6b6a65">Bậc 2 · 100k/buổi</div></div>
+      <div style="font-weight:500">18 buổi</div>
+      <div>1.800.000đ</div>
+      <div><input class="editable" id="bonus-1" value="200000" oninput="recalc(1,1800000)"></div>
+      <div><input class="editable" id="penalty-1" value="0" oninput="recalc(1,1800000)"></div>
+      <div class="total-col" id="total-1">2.000.000đ</div>
+    </div>
+
+    <div class="payroll-row" id="row-2">
+      <div><div style="font-weight:500">Trần Thị Linh</div><div style="font-size:11px;color:#6b6a65">Bậc 1 · 50k/buổi</div></div>
+      <div style="font-weight:500">14 buổi</div>
+      <div>700.000đ</div>
+      <div><input class="editable" id="bonus-2" value="0" oninput="recalc(2,700000)"></div>
+      <div><input class="editable" id="penalty-2" value="0" oninput="recalc(2,700000)"></div>
+      <div class="total-col" id="total-2">700.000đ</div>
+    </div>
+
+    <div class="payroll-row" id="row-3">
+      <div><div style="font-weight:500">Lê Văn Minh</div><div style="font-size:11px;color:#6b6a65">Cố định · Bậc 3</div></div>
+      <div style="font-weight:500">22 buổi</div>
+      <div>8.000.000đ</div>
+      <div><input class="editable" id="bonus-3" value="500000" oninput="recalc(3,8000000)"></div>
+      <div><input class="editable" id="penalty-3" value="0" oninput="recalc(3,8000000)"></div>
+      <div class="total-col" id="total-3">8.500.000đ</div>
+    </div>
+
+    <div style="padding:12px 18px;background:#f9f9f7;border-top:1px solid rgba(0,0,0,.06);display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:13px;color:#6b6a65">Tổng chi lương tháng 3</div>
+      <div style="font-size:16px;font-weight:500;color:#534AB7" id="grand-total">11.200.000đ</div>
+    </div>
+  </div>
+
+<script>
+function fmt(n) {
+  return Math.round(n).toLocaleString('vi-VN') + 'đ';
+}
+
+function recalc(rowId, base) {
+  const bonus   = parseInt(document.getElementById('bonus-' + rowId).value)   || 0;
+  const penalty = parseInt(document.getElementById('penalty-' + rowId).value) || 0;
+  const total   = base + bonus - penalty;
+  document.getElementById('total-' + rowId).textContent = fmt(total);
+  updateGrandTotal();
+}
+
+function updateGrandTotal() {
+  const totals = [
+    parseInt(document.getElementById('total-1').textContent.replace(/\D/g,'')) || 0,
+    parseInt(document.getElementById('total-2').textContent.replace(/\D/g,'')) || 0,
+    parseInt(document.getElementById('total-3').textContent.replace(/\D/g,'')) || 0,
+  ];
+  document.getElementById('grand-total').textContent = fmt(totals.reduce((a,b)=>a+b,0));
+}
+
+function switchType(btn, type) {
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const header = document.getElementById('rate-header');
+  const sessionInputs = document.querySelectorAll('.sessions-input');
+  if (type === 'monthly') {
+    header.textContent = 'Lương / tháng';
+    sessionInputs.forEach(i => { i.disabled = true; i.style.opacity = '.4'; });
+  } else {
+    header.textContent = 'Lương / buổi';
+    sessionInputs.forEach(i => { i.disabled = false; i.style.opacity = '1'; });
+  }
+}
+
+function saveLevels() {
+  const btn = event.target;
+  btn.textContent = 'Đã lưu ✓';
+  btn.style.background = '#1D9E75';
+  setTimeout(() => { btn.textContent = 'Lưu cấu hình'; btn.style.background = '#534AB7'; }, 2000);
+}
+
+function confirmPayroll() {
+  const btn = event.target;
+  btn.textContent = 'Đã xác nhận ✓';
+  btn.style.background = '#1D9E75';
+  btn.disabled = true;
+}
+</script>
+</body>
+</html>

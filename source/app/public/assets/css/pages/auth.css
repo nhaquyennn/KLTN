@@ -1,0 +1,89 @@
+body{
+    margin:0;
+    font-family:"Segoe UI",sans-serif;
+    background:url("../../images/bg/login.jpg") no-repeat center;
+    background-size:cover;
+}
+
+/* căn giữa toàn màn hình */
+#auth{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+}
+
+/* khung login */
+#auth-left{
+    background: rgba(255, 255, 255, 0.694);
+    padding:45px 40px;
+    width:420px;
+    max-width:100%; /* responsive */
+    border-radius:20px;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.15);
+}
+
+/* input */
+.form-control{
+    height:42px;
+    font-size:14px;
+    border-radius:20px;
+    padding-left:42px;
+    border:1px solid #e0e0e0;
+}
+
+/* nút login */
+.btn-primary{
+    height:45px;
+    border-radius:25px;
+    font-weight:600;
+    font-size:15px;
+    margin-top:10px;
+}
+
+/* link */
+.text-center{
+    margin-top:30px;
+}
+
+.text-center a{
+    color:#4a5edb;
+    font-size:14px;
+    text-decoration:none;
+}
+
+.text-center a:hover{
+    color:white;
+}
+
+/* ===== RESPONSIVE ===== */
+
+/* Tablet */
+@media (max-width:768px){
+    #auth-left{
+        width:360px;
+        padding:35px 30px;
+    }
+}
+
+/* Mobile */
+@media (max-width:480px){
+    #auth-left{
+        width:100%;
+        padding:30px 25px;
+        border-radius:15px;
+    }
+
+    .form-control{
+        height:40px;
+        font-size:13px;
+    }
+
+    .btn-primary{
+        height:42px;
+        font-size:14px;
+    }
+}
+
+

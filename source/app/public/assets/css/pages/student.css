@@ -1,0 +1,70 @@
+/* nền tổng */
+body {
+    background: #f4f6fb;
+    font-family: "Segoe UI", sans-serif;
+}
+
+/* header */
+.card-header {
+    background: transparent;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.card-title {
+    font-weight: 600;
+    color: #333;
+}
+
+/* table */
+.table {
+    border-collapse: separate;
+    border-spacing: 0 10px; /* tạo khoảng cách giữa các row */
+}
+
+/* header table */
+.table thead tr th {
+    border: none;
+    color: #f80f0f;
+    font-size: 15px;
+    text-transform: uppercase;
+    padding-bottom: 10px;
+}
+
+/* row style */
+.table tbody tr {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    transition: all 0.25s ease;
+}
+
+/* bo góc cho từng row */
+.table tbody tr td:first-child {
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+}
+.table tbody tr td:last-child {
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+}
+
+/* cell */
+.table tbody td {
+    border: 5px;
+    padding: 16px;
+    vertical-align: middle;
+}
+
+/* hover mượt */
+.table-hover tbody tr:hover {
+    transform: scale(0.99);
+    box-shadow: 0 8px 25px rgba(209, 204, 237, 0.819);
+}
+
+/* text đậm */
+.text-bold-500 {
+    font-weight: 600;
+    color: #222;
+}
+

@@ -1,0 +1,143 @@
+/* nền tổng */
+body {
+    background: #f4f6fb;
+    font-family: "Segoe UI", sans-serif;
+}
+
+/* header */
+.card-header {
+    background: transparent;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.card {
+    background: #ffffff;
+    padding: 20px 18px;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+    border: 1px solid #eee;
+}
+
+.card-title {
+    font-weight: 600;
+    color: #333;
+}
+
+/* table */
+.table {
+    border-collapse: separate;
+    border-spacing: 0 10px;
+    /* tạo khoảng cách giữa các row */
+}
+
+/* header table */
+.table thead tr th {
+    border: none;
+    color: #f80f0f;
+    font-size: 15px;
+    text-transform: uppercase;
+    padding-bottom: 10px;
+}
+
+/* row style */
+.table tbody tr {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.25s ease;
+}
+
+/* bo góc cho từng row */
+.table tbody tr td:first-child {
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+}
+
+.table tbody tr td:last-child {
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+}
+
+/* cell */
+.table tbody td {
+    border: 5px;
+    padding: 16px;
+    vertical-align: middle;
+}
+
+/* hover mượt */
+.table-hover tbody tr:hover {
+    transform: scale(0.99);
+    box-shadow: 0 8px 25px rgba(209, 204, 237, 0.819);
+}
+
+/* text đậm */
+.text-bold-500 {
+    font-weight: 600;
+    color: #222;
+}
+
+/* ===== Filter Card ===== */
+.filter-box {
+    background: #ffffff;
+    padding: 20px 18px;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+    border: 1px solid #eee;
+}
+
+/* ===== Input / Select ===== */
+.filter-box .form-control {
+    height: 42px;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+
+.filter-box .form-control:focus {
+    border-color: #435ebe;
+    box-shadow: 0 0 0 2px rgba(67, 94, 190, 0.15);
+}
+
+/* ===== Button ===== */
+.filter-box .btn {
+    height: 42px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+/* nút lọc */
+.filter-box .btn-primary {
+    background: #435ebe;
+    border: none;
+}
+
+.filter-box .btn-primary:hover {
+    background: #364fc7;
+}
+
+/* nút reset */
+.filter-box .btn-secondary {
+    background: #f1f3f5;
+    color: #333;
+    border: none;
+}
+
+.filter-box .btn-secondary:hover {
+    background: #e9ecef;
+}
+
+/* ===== spacing đẹp hơn ===== */
+.filter-box .row>div {
+    margin-bottom: 10px;
+}
+
+.page-title {
+    margin-bottom: 20px;
+}
+
+.breadcrumb {
+    background: transparent;
+}

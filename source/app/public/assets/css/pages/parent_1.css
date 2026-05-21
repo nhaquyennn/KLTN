@@ -1,0 +1,239 @@
+/* RESET & CƠ BẢN */
+body {
+    background: #f5f7fb;
+    font-family: "Inter", sans-serif;
+    overflow-x: hidden;
+}
+
+/* DATE BOX */
+.bg-light-blue { background-color: #eef2ff; color: #4f46e5; }
+
+
+/* RESPONSIVE TRICKS */
+
+/* Xử lý tràn text */
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Sửa lỗi row lệch của bạn */
+.row {
+    margin-left: -0.75rem; /* Giá trị mặc định của Bootstrap g-3 */
+    margin-right: -0.75rem;
+}
+
+/* Container chính */
+.dashboard-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+/* Header màu đặc trưng trung tâm */
+.dashboard-header {
+    background: #FFCC33; /* Giữ màu vàng chủ đạo của bạn */
+    padding: 24px;
+    border-radius: 20px;
+    border: none;
+}
+
+/* Hiệu ứng Card cho phụ huynh thấy sang trọng */
+.card {
+    transition: all 0.3s ease;
+    border-radius: 18px !important;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
+}
+
+/* Date Box đẹp hơn */
+.date-box {
+    line-height: 1.2;
+    min-width: 55px;
+}
+
+/* Responsive cho Mobile */
+@media (max-width: 767.98px) {
+    /* Trên mobile, các cột sẽ tự động xếp chồng thành 1 hàng */
+    .dashboard-header {
+        padding: 15px;
+        text-align: center;
+        flex-direction: column !important;
+        gap: 15px;
+    }
+    
+    .dashboard-header div {
+        text-align: center;
+    }
+
+    .btn-dark {
+        width: 100%;
+    }
+}
+/* Container & Table */
+.calendar-table {
+    border-collapse: collapse;
+    table-layout: fixed; /* Giữ các cột luôn bằng nhau */
+}
+
+.calendar-table th {
+    padding: 12px;
+    font-weight: 600;
+    color: #444;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.calendar-table td {
+    height: 180px; /* Độ cao tối thiểu cho ô lịch */
+    vertical-align: top;
+    padding: 8px !important;
+    background: #fff;
+}
+
+/* Số ngày */
+.day-number {
+    font-size: 0.9rem;
+    color: #6c757d;
+    text-align: right;
+    margin-bottom: 5px;
+}
+
+/* Thẻ thông tin buổi học */
+.class-card {
+    background: #fff;
+    border: 1px solid #e9ecef !important;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.highlight-class {
+    border-left: 4px solid #0d6efd !important; /* Tạo vạch màu xanh điểm nhấn */
+}
+
+/* Link Giáo trình / Bài tập */
+.btn-link-custom {
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.btn-link-custom:hover {
+    text-decoration: underline;
+}
+
+/* Icon tinh chỉnh */
+.bi {
+    font-size: 0.85rem;
+    vertical-align: middle;
+}
+
+/* Responsive cho điện thoại */
+@media (max-width: 768px) {
+    .calendar-table td {
+        min-width: 140px; /* Cho phép cuộn ngang trên mobile */
+        height: auto;
+    }
+}
+
+/* Làm nét chữ và khung hình */
+.italic { font-style: italic; }
+.border-dashed { border: 2px dashed #dee2e6; }
+.border-dashed:focus { border-color: #0d6efd; box-shadow: none; }
+
+/* Sticker Effect */
+.drop-shadow {
+    filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.15));
+    transform: rotate(10deg);
+    transition: transform 0.3s ease;
+}
+.drop-shadow:hover {
+    transform: rotate(0deg) scale(1.1);
+}
+
+/* Chia cột cho Mobile */
+@media (min-width: 768px) {
+    .border-end-md {
+        border-right: 1px solid #eee !important;
+    }
+}
+
+/* Tùy chỉnh Badge */
+.badge {
+    padding: 6px 12px;
+    font-weight: 500;
+}
+
+/* Background cho comment của giáo viên */
+.teacher-comment {
+    border-left: 4px solid #FFCC33;
+    min-height: 100px;
+}
+/* Sidebar Profile */
+.sidebar-user-profile .avatar img {
+    border: 2px solid #FFCC33;
+}
+
+/* Student Selector */
+.sidebar-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    color: #999;
+}
+
+.student-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    text-decoration: none !important;
+    color: #444;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.student-item:hover {
+    background: #eef2ff;
+}
+
+.student-item.active {
+    background: #eef2ff;
+    border-color: #435ebe;
+    color: #435ebe;
+}
+
+.student-avatar {
+    width: 32px;
+    height: 32px;
+    background: #435ebe;
+    color: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-right: 12px;
+}
+
+.student-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.opacity-05 {
+    opacity: 0.1;
+}
+
+/* Fix Sidebar Header */
+.sidebar-header img {
+    height: 2.5rem !important;
+}

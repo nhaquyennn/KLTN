@@ -1,0 +1,562 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.pg{background:var(--color-background-tertiary);padding:20px;font-family:var(--font-sans);display:flex;flex-direction:column;gap:16px}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.card-head{padding:14px 18px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.card-title{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.card-sub{font-size:12px;color:var(--color-text-secondary);margin-top:2px}
+.btn{padding:7px 14px;border-radius:var(--border-radius-md);font-size:13px;font-weight:500;cursor:pointer;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans)}
+.btn:hover{background:var(--color-background-secondary)}
+.btn-red{background:#FCEBEB;color:#A32D2D;border-color:#F09595}
+.btn-red:hover{background:#F7C1C1}
+.btn-green{background:#EAF3DE;color:#27500A;border-color:#97C459}
+.btn-green:hover{background:#C0DD97}
+.btn-primary{background:#534AB7;color:#fff;border-color:#534AB7}
+.btn-primary:hover{opacity:.88}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:var(--border-radius-md);cursor:pointer;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-secondary);font-family:var(--font-sans)}
+
+/* tabs */
+.tab-row{display:flex;border-bottom:0.5px solid var(--color-border-tertiary)}
+.tab{padding:11px 20px;font-size:13px;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;margin-bottom:-0.5px;font-family:var(--font-sans);background:none;border-top:none;border-left:none;border-right:none}
+.tab.active{color:#534AB7;font-weight:500;border-bottom-color:#534AB7}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:16px 18px}
+.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px}
+.stat-label{font-size:11px;color:var(--color-text-tertiary);margin-bottom:5px}
+.stat-num{font-size:22px;font-weight:500;line-height:1}
+.stat-sub{font-size:11px;color:var(--color-text-secondary);margin-top:3px}
+
+/* form section */
+.form-section{padding:18px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:12px;font-weight:500;color:var(--color-text-secondary)}
+.form-input{padding:8px 11px;font-size:13px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);width:100%}
+.form-input:focus{outline:2px solid #534AB7;outline-offset:1px}
+.form-select{padding:8px 11px;font-size:13px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);width:100%}
+textarea.form-input{resize:vertical;min-height:72px}
+
+/* penalty type selector */
+.penalty-types{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.ptype{border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:10px 12px;cursor:pointer;transition:border-color .15s}
+.ptype:hover{border-color:var(--color-border-primary)}
+.ptype.selected{border:1.5px solid #E24B4A;background:#FCEBEB}
+.ptype-icon{width:28px;height:28px;border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;margin-bottom:6px}
+.ptype-name{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.ptype-desc{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+
+/* bonus type selector */
+.bonus-types{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.btype{border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:12px 14px;cursor:pointer;transition:border-color .15s}
+.btype:hover{border-color:var(--color-border-primary)}
+.btype.selected{border:1.5px solid #1D9E75;background:#E1F5EE}
+.btype-name{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.btype-desc{font-size:11px;color:var(--color-text-secondary);margin-top:3px;line-height:1.5}
+
+/* preview box */
+.preview-box{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px;margin-top:14px}
+.preview-row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.preview-row:last-child{border-bottom:none;font-weight:500;padding-top:8px;margin-top:4px}
+.preview-label{color:var(--color-text-secondary)}
+.preview-neg{color:#A32D2D;font-weight:500}
+.preview-pos{color:#27500A;font-weight:500}
+
+/* history list */
+.hist-item{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 18px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.hist-item:last-child{border-bottom:none}
+.hist-left{display:flex;align-items:flex-start;gap:10px}
+.hist-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.hist-name{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.hist-meta{font-size:12px;color:var(--color-text-secondary);margin-top:2px;line-height:1.5}
+.hist-reason{font-size:12px;color:var(--color-text-secondary);margin-top:3px;font-style:italic}
+.hist-amount{font-size:14px;font-weight:500;white-space:nowrap;text-align:right}
+.hist-date{font-size:11px;color:var(--color-text-tertiary);margin-top:2px;text-align:right}
+.hist-actions{display:flex;gap:6px;margin-top:4px;justify-content:flex-end}
+
+/* toast */
+.toast{padding:10px 16px;border-radius:var(--border-radius-md);font-size:13px;display:none;margin:0 18px 14px}
+.toast.show{display:block}
+.toast-ok{background:#EAF3DE;color:#27500A;border:0.5px solid #97C459}
+.toast-err{background:#FCEBEB;color:#A32D2D;border:0.5px solid #F09595}
+
+/* divider */
+.divider{height:0.5px;background:var(--color-border-tertiary);margin:14px 0}
+</style>
+
+<div class="pg">
+
+<h2 class="sr-only">Giao diện quản lý thưởng và phạt giảng viên trung tâm 3C Center</h2>
+
+<!-- Header -->
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+  <div>
+    <div style="font-size:18px;font-weight:500;color:var(--color-text-primary)">Thưởng & Phạt giảng viên</div>
+    <div style="font-size:13px;color:var(--color-text-secondary);margin-top:3px">Tháng 3 / 2026</div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <select class="form-select" style="width:auto" id="filter-month">
+      <option>Tháng 3 / 2026</option>
+      <option>Tháng 2 / 2026</option>
+      <option>Tháng 1 / 2026</option>
+    </select>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="card">
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Tổng phạt tháng này</div>
+      <div class="stat-num" style="color:#A32D2D" id="stat-penalty">300.000đ</div>
+      <div class="stat-sub">3 lần phạt</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Tổng thưởng tháng này</div>
+      <div class="stat-num" style="color:#27500A" id="stat-bonus">700.000đ</div>
+      <div class="stat-sub">2 lần thưởng</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Ảnh hưởng lương</div>
+      <div class="stat-num" style="color:#534AB7">+400.000đ</div>
+      <div class="stat-sub">net tháng này</div>
+    </div>
+  </div>
+</div>
+
+<!-- Main card: tabs -->
+<div class="card">
+  <div class="tab-row">
+    <button class="tab active" onclick="switchTab('penalty',this)">Thêm phạt</button>
+    <button class="tab" onclick="switchTab('bonus',this)">Thêm thưởng</button>
+    <button class="tab" onclick="switchTab('history',this)">Lịch sử</button>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <!-- ── TAB PHẠT ── -->
+  <div id="tab-penalty">
+    <div class="form-section">
+
+      <!-- Chọn loại phạt -->
+      <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px">Loại vi phạm</div>
+      <div class="penalty-types">
+        <div class="ptype selected" onclick="selectPType(this,'late')" id="pt-late">
+          <div class="ptype-icon" style="background:#FAEEDA">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#854F0B" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="ptype-name">Đi trễ</div>
+          <div class="ptype-desc">Muộn giờ dạy</div>
+        </div>
+        <div class="ptype" onclick="selectPType(this,'absent')" id="pt-absent">
+          <div class="ptype-icon" style="background:#FCEBEB">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A32D2D" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          </div>
+          <div class="ptype-name">Vắng không phép</div>
+          <div class="ptype-desc">Bỏ buổi dạy</div>
+        </div>
+        <div class="ptype" onclick="selectPType(this,'quality')" id="pt-quality">
+          <div class="ptype-icon" style="background:#F1EFE8">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5F5E5A" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="ptype-name">Chất lượng</div>
+          <div class="ptype-desc">Khiếu nại phụ huynh</div>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Giảng viên</label>
+          <select class="form-select" id="p-teacher" onchange="updatePreview()">
+            <option value="">-- Chọn giảng viên --</option>
+            <option value="1" data-salary="100000">Nguyễn Văn Tuấn (Bậc 2 · 100k/buổi)</option>
+            <option value="2" data-salary="50000">Trần Thị Linh (Bậc 1 · 50k/buổi)</option>
+            <option value="3" data-salary="8000000" data-fixed="1">Lê Văn Minh (Cố định · 8tr/tháng)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Buổi dạy bị vi phạm</label>
+          <select class="form-select" id="p-session" onchange="updatePreview()">
+            <option value="">-- Chọn buổi --</option>
+            <option value="1">Buổi 12 · T2 23/03 · Robotics L1</option>
+            <option value="2">Buổi 11 · T6 20/03 · Python</option>
+            <option value="3">Buổi 10 · T4 18/03 · Robotics L1</option>
+            <option value="4">Buổi 9 · T2 16/03 · Python</option>
+          </select>
+        </div>
+        <div class="form-group" id="late-min-group">
+          <label class="form-label">Số phút trễ</label>
+          <input class="form-input" type="number" id="p-late-min" placeholder="vd: 15" min="1" max="120" oninput="updatePreview()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mức phạt</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input class="form-input" type="number" id="p-amount" placeholder="0" style="flex:1" oninput="updatePreview()">
+            <span style="font-size:13px;color:var(--color-text-secondary);white-space:nowrap">đồng</span>
+          </div>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Lý do phạt</label>
+          <textarea class="form-input" id="p-reason" placeholder="Mô tả chi tiết vi phạm..." oninput="updatePreview()"></textarea>
+        </div>
+      </div>
+
+      <!-- Gợi ý mức phạt nhanh -->
+      <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <span style="font-size:12px;color:var(--color-text-tertiary)">Gợi ý nhanh:</span>
+        <button class="btn-sm" onclick="quickAmount(50000)">50.000đ</button>
+        <button class="btn-sm" onclick="quickAmount(100000)">100.000đ</button>
+        <button class="btn-sm" onclick="quickAmount(150000)">150.000đ</button>
+        <button class="btn-sm" onclick="quickAmount(200000)">200.000đ</button>
+        <button class="btn-sm" onclick="quickAmount(500000)">500.000đ</button>
+      </div>
+
+      <!-- Preview -->
+      <div class="preview-box" id="penalty-preview" style="display:none">
+        <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px">Xem trước tác động lương</div>
+        <div class="preview-row"><span class="preview-label">Giảng viên</span><span id="prev-teacher">—</span></div>
+        <div class="preview-row"><span class="preview-label">Buổi vi phạm</span><span id="prev-session">—</span></div>
+        <div class="preview-row"><span class="preview-label">Loại vi phạm</span><span id="prev-type">—</span></div>
+        <div class="preview-row"><span class="preview-label">Lương buổi hiện tại</span><span id="prev-base">—</span></div>
+        <div class="preview-row"><span class="preview-label">Mức phạt</span><span class="preview-neg" id="prev-penalty">—</span></div>
+        <div class="preview-row"><span class="preview-label">Còn nhận được</span><span id="prev-net" style="color:#534AB7;font-weight:500">—</span></div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+        <button class="btn" onclick="clearPenaltyForm()">Huỷ</button>
+        <button class="btn btn-red" onclick="submitPenalty()">Xác nhận phạt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB THƯỞNG ── -->
+  <div id="tab-bonus" style="display:none">
+    <div class="form-section">
+
+      <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px">Loại thưởng</div>
+      <div class="bonus-types">
+        <div class="btype selected" onclick="selectBType(this,'holiday')" id="bt-holiday">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <div style="width:8px;height:8px;border-radius:50%;background:#1D9E75"></div>
+            <div class="btype-name">Thưởng dịp lễ / Tết</div>
+          </div>
+          <div class="btype-desc">Thưởng cố định theo dịp đặc biệt. Nhập số tiền cụ thể.</div>
+        </div>
+        <div class="btype" onclick="selectBType(this,'percent')" id="bt-percent">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <div style="width:8px;height:8px;border-radius:50%;background:#534AB7"></div>
+            <div class="btype-name">Tăng % lương tháng</div>
+          </div>
+          <div class="btype-desc">Tính theo % lương cơ bản tháng đó. Áp dụng 1 lần.</div>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Giảng viên</label>
+          <select class="form-select" id="b-teacher" onchange="updateBonusPreview()">
+            <option value="">-- Chọn giảng viên --</option>
+            <option value="all">Tất cả giảng viên</option>
+            <option value="1" data-base="1800000">Nguyễn Văn Tuấn</option>
+            <option value="2" data-base="700000">Trần Thị Linh</option>
+            <option value="3" data-base="8000000">Lê Văn Minh</option>
+          </select>
+        </div>
+        <div class="form-group" id="bonus-occasion-group">
+          <label class="form-label">Dịp thưởng</label>
+          <select class="form-select" id="b-occasion">
+            <option>Tết Nguyên Đán 2026</option>
+            <option>Ngày Nhà giáo 20/11</option>
+            <option>Thưởng hiệu suất Q1</option>
+            <option>Khác...</option>
+          </select>
+        </div>
+        <div class="form-group" id="bonus-amount-group">
+          <label class="form-label" id="bonus-amount-label">Số tiền thưởng</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input class="form-input" type="number" id="b-amount" placeholder="0" style="flex:1" oninput="updateBonusPreview()">
+            <span style="font-size:13px;color:var(--color-text-secondary);white-space:nowrap" id="b-unit">đồng</span>
+          </div>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Ghi chú</label>
+          <textarea class="form-input" id="b-note" placeholder="Ghi chú thêm..." style="min-height:56px"></textarea>
+        </div>
+      </div>
+
+      <!-- Gợi ý nhanh -->
+      <div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap" id="bonus-quick">
+        <span style="font-size:12px;color:var(--color-text-tertiary)">Gợi ý nhanh:</span>
+        <button class="btn-sm" onclick="quickBonus(500000)">500.000đ</button>
+        <button class="btn-sm" onclick="quickBonus(1000000)">1.000.000đ</button>
+        <button class="btn-sm" onclick="quickBonus(2000000)">2.000.000đ</button>
+        <button class="btn-sm" onclick="quickBonus(5)">5%</button>
+        <button class="btn-sm" onclick="quickBonus(10)">10%</button>
+      </div>
+
+      <!-- Preview thưởng -->
+      <div class="preview-box" id="bonus-preview" style="display:none;margin-top:14px">
+        <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px">Xem trước</div>
+        <div class="preview-row"><span class="preview-label">Giảng viên</span><span id="bprev-teacher">—</span></div>
+        <div class="preview-row"><span class="preview-label">Lương cơ bản tháng 3</span><span id="bprev-base">—</span></div>
+        <div class="preview-row"><span class="preview-label">Thưởng thêm</span><span class="preview-pos" id="bprev-amount">—</span></div>
+        <div class="preview-row"><span class="preview-label">Tổng nhận</span><span id="bprev-total" style="color:#534AB7;font-weight:500">—</span></div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+        <button class="btn" onclick="clearBonusForm()">Huỷ</button>
+        <button class="btn btn-green" onclick="submitBonus()">Xác nhận thưởng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB LỊCH SỬ ── -->
+  <div id="tab-history" style="display:none">
+    <div style="padding:12px 18px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <select class="form-select" style="width:auto;font-size:12px">
+        <option>Tất cả loại</option>
+        <option>Chỉ phạt</option>
+        <option>Chỉ thưởng</option>
+      </select>
+      <select class="form-select" style="width:auto;font-size:12px">
+        <option>Tất cả giảng viên</option>
+        <option>Nguyễn Văn Tuấn</option>
+        <option>Trần Thị Linh</option>
+        <option>Lê Văn Minh</option>
+      </select>
+      <span style="font-size:12px;color:var(--color-text-tertiary);margin-left:auto">5 bản ghi</span>
+    </div>
+
+    <div class="hist-item">
+      <div class="hist-left">
+        <div class="hist-dot" style="background:#E24B4A"></div>
+        <div>
+          <div class="hist-name">Trần Thị Linh</div>
+          <div class="hist-meta">Phạt · Đi trễ 20 phút · Buổi 11 (T6 20/03)</div>
+          <div class="hist-reason">"Đến muộn không báo trước, phụ huynh phản ánh"</div>
+        </div>
+      </div>
+      <div>
+        <div class="hist-amount" style="color:#A32D2D">-100.000đ</div>
+        <div class="hist-date">23/03/2026</div>
+        <div class="hist-actions"><button class="btn-sm">Sửa</button><button class="btn-sm" style="color:#A32D2D;border-color:#F09595">Xoá</button></div>
+      </div>
+    </div>
+
+    <div class="hist-item">
+      <div class="hist-left">
+        <div class="hist-dot" style="background:#1D9E75"></div>
+        <div>
+          <div class="hist-name">Nguyễn Văn Tuấn</div>
+          <div class="hist-meta">Thưởng · Tết Nguyên Đán 2026</div>
+          <div class="hist-reason">"Thưởng tết theo chính sách trung tâm"</div>
+        </div>
+      </div>
+      <div>
+        <div class="hist-amount" style="color:#27500A">+500.000đ</div>
+        <div class="hist-date">20/03/2026</div>
+        <div class="hist-actions"><button class="btn-sm">Sửa</button><button class="btn-sm" style="color:#A32D2D;border-color:#F09595">Xoá</button></div>
+      </div>
+    </div>
+
+    <div class="hist-item">
+      <div class="hist-left">
+        <div class="hist-dot" style="background:#E24B4A"></div>
+        <div>
+          <div class="hist-name">Nguyễn Văn Tuấn</div>
+          <div class="hist-meta">Phạt · Vắng không phép · Buổi 9 (T2 16/03)</div>
+          <div class="hist-reason">"Không báo trước, không tìm được người dạy thay"</div>
+        </div>
+      </div>
+      <div>
+        <div class="hist-amount" style="color:#A32D2D">-200.000đ</div>
+        <div class="hist-date">17/03/2026</div>
+        <div class="hist-actions"><button class="btn-sm">Sửa</button><button class="btn-sm" style="color:#A32D2D;border-color:#F09595">Xoá</button></div>
+      </div>
+    </div>
+
+    <div class="hist-item">
+      <div class="hist-left">
+        <div class="hist-dot" style="background:#1D9E75"></div>
+        <div>
+          <div class="hist-name">Lê Văn Minh</div>
+          <div class="hist-meta">Thưởng · Hiệu suất Q1 · Tăng 10% lương tháng</div>
+          <div class="hist-reason">"Hoàn thành xuất sắc, phụ huynh phản hồi tốt"</div>
+        </div>
+      </div>
+      <div>
+        <div class="hist-amount" style="color:#27500A">+200.000đ</div>
+        <div class="hist-date">15/03/2026</div>
+        <div class="hist-actions"><button class="btn-sm">Sửa</button><button class="btn-sm" style="color:#A32D2D;border-color:#F09595">Xoá</button></div>
+      </div>
+    </div>
+
+    <div class="hist-item">
+      <div class="hist-left">
+        <div class="hist-dot" style="background:#E24B4A"></div>
+        <div>
+          <div class="hist-name">Trần Thị Linh</div>
+          <div class="hist-meta">Phạt · Chất lượng · Buổi 7 (T4 11/03)</div>
+          <div class="hist-reason">"Phụ huynh 2 em phản ánh giảng viên thiếu kiên nhẫn"</div>
+        </div>
+      </div>
+      <div>
+        <div class="hist-amount" style="color:#A32D2D">-0đ</div>
+        <div class="hist-date">12/03/2026</div>
+        <div class="hist-actions"><button class="btn-sm">Sửa</button><button class="btn-sm" style="color:#A32D2D;border-color:#F09595">Xoá</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+let currentPType = 'late';
+let currentBType = 'holiday';
+
+function switchTab(name, btn) {
+  ['penalty','bonus','history'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===name ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('toast').className = 'toast';
+}
+
+function selectPType(el, type) {
+  currentPType = type;
+  document.querySelectorAll('.ptype').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('late-min-group').style.display = type==='late' ? 'flex' : 'none';
+  updatePreview();
+}
+
+function selectBType(el, type) {
+  currentBType = type;
+  document.querySelectorAll('.btype').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  const isPercent = type === 'percent';
+  document.getElementById('bonus-amount-label').textContent = isPercent ? 'Phần trăm tăng (%)' : 'Số tiền thưởng';
+  document.getElementById('b-unit').textContent = isPercent ? '%' : 'đồng';
+  document.getElementById('b-amount').placeholder = isPercent ? 'vd: 10' : '0';
+  document.getElementById('b-occasion-group').style.display = isPercent ? 'none' : 'flex';
+  document.querySelectorAll('#bonus-quick .btn-sm').forEach((b,i) => {
+    if(i<3) b.style.display = isPercent ? 'none' : 'inline-flex';
+    else    b.style.display = isPercent ? 'inline-flex' : 'none';
+  });
+  updateBonusPreview();
+}
+
+function quickAmount(val) {
+  document.getElementById('p-amount').value = val;
+  updatePreview();
+}
+
+function quickBonus(val) {
+  document.getElementById('b-amount').value = val;
+  updateBonusPreview();
+}
+
+function fmt(n) {
+  return Math.round(n).toLocaleString('vi-VN') + 'đ';
+}
+
+function updatePreview() {
+  const teacherSel = document.getElementById('p-teacher');
+  const sessionSel = document.getElementById('p-session');
+  const amount     = parseInt(document.getElementById('p-amount').value) || 0;
+  const preview    = document.getElementById('penalty-preview');
+
+  if (!teacherSel.value || !amount) { preview.style.display='none'; return; }
+
+  const opt     = teacherSel.options[teacherSel.selectedIndex];
+  const salary  = parseInt(opt.dataset.salary) || 0;
+  const isFixed = opt.dataset.fixed === '1';
+  const session = sessionSel.value ? sessionSel.options[sessionSel.selectedIndex].text : '—';
+  const typeMap  = {late:'Đi trễ', absent:'Vắng không phép', quality:'Chất lượng yếu'};
+
+  preview.style.display = 'block';
+  document.getElementById('prev-teacher').textContent  = opt.text.split('(')[0].trim();
+  document.getElementById('prev-session').textContent  = session;
+  document.getElementById('prev-type').textContent     = typeMap[currentPType];
+  document.getElementById('prev-base').textContent     = isFixed ? 'Lương cố định' : fmt(salary) + '/buổi';
+  document.getElementById('prev-penalty').textContent  = '-' + fmt(amount);
+  document.getElementById('prev-net').textContent      = isFixed ? 'Lương tháng - ' + fmt(amount) : fmt(Math.max(0, salary - amount)) + '/buổi';
+}
+
+function updateBonusPreview() {
+  const teacherSel = document.getElementById('b-teacher');
+  const amount     = parseFloat(document.getElementById('b-amount').value) || 0;
+  const preview    = document.getElementById('bonus-preview');
+
+  if (!teacherSel.value || !amount) { preview.style.display='none'; return; }
+
+  const opt  = teacherSel.options[teacherSel.selectedIndex];
+  const base = parseInt(opt.dataset.base) || 0;
+  const name = opt.value === 'all' ? 'Tất cả giảng viên' : opt.text;
+
+  preview.style.display = 'block';
+  document.getElementById('bprev-teacher').textContent = name;
+  document.getElementById('bprev-base').textContent    = base ? fmt(base) : '—';
+
+  if (currentBType === 'percent') {
+    const bonusAmt = Math.round(base * amount / 100);
+    document.getElementById('bprev-amount').textContent = '+' + fmt(bonusAmt) + ' (' + amount + '%)';
+    document.getElementById('bprev-total').textContent  = base ? fmt(base + bonusAmt) : '—';
+  } else {
+    document.getElementById('bprev-amount').textContent = '+' + fmt(amount);
+    document.getElementById('bprev-total').textContent  = base ? fmt(base + amount) : '—';
+  }
+}
+
+function showToast(msg, ok) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (ok ? 'toast-ok' : 'toast-err');
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+function submitPenalty() {
+  const teacher = document.getElementById('p-teacher').value;
+  const session = document.getElementById('p-session').value;
+  const amount  = parseInt(document.getElementById('p-amount').value) || 0;
+  const reason  = document.getElementById('p-reason').value.trim();
+  if (!teacher) { showToast('Vui lòng chọn giảng viên', false); return; }
+  if (!session) { showToast('Vui lòng chọn buổi dạy', false); return; }
+  if (!amount)  { showToast('Vui lòng nhập mức phạt', false); return; }
+  if (!reason)  { showToast('Vui lòng nhập lý do phạt', false); return; }
+  showToast('Đã ghi nhận phạt thành công!', true);
+  clearPenaltyForm();
+}
+
+function submitBonus() {
+  const teacher = document.getElementById('b-teacher').value;
+  const amount  = parseFloat(document.getElementById('b-amount').value) || 0;
+  if (!teacher) { showToast('Vui lòng chọn giảng viên', false); return; }
+  if (!amount)  { showToast('Vui lòng nhập mức thưởng', false); return; }
+  showToast('Đã ghi nhận thưởng thành công!', true);
+  clearBonusForm();
+}
+
+function clearPenaltyForm() {
+  ['p-teacher','p-session','p-amount','p-reason','p-late-min'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  document.getElementById('penalty-preview').style.display = 'none';
+}
+
+function clearBonusForm() {
+  ['b-teacher','b-amount','b-note'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  document.getElementById('bonus-preview').style.display = 'none';
+}
+
+document.getElementById('late-min-group').style.display = 'flex';
+</script>

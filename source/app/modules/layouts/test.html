@@ -1,0 +1,129 @@
+```html
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Phụ Huynh</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f5f7fa;
+        }
+        .card {
+            border-radius: 15px;
+        }
+        .video-box video {
+            border-radius: 10px;
+        }
+        .progress {
+            height: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container py-4">
+
+    <!-- HEADER -->
+    <div class="mb-4">
+        <h2>👨‍👩‍👧 Dashboard Phụ Huynh</h2>
+    </div>
+
+    <!-- THÔNG TIN HỌC SINH -->
+    <div class="card p-3 mb-4">
+        <h5>👦 Thông tin học sinh</h5>
+        <p><strong>Tên:</strong> Nguyễn Văn A</p>
+        <p><strong>Khóa:</strong> Scratch Level 1</p>
+        <p><strong>Lớp:</strong> T3 - T5 (9h-10h)</p>
+        <p><strong>Giảng viên:</strong> Thầy B</p>
+    </div>
+
+    <!-- BUỔI HỌC GẦN NHẤT -->
+    <div class="card p-3 mb-4">
+        <h5>🎥 Buổi học gần nhất</h5>
+
+        <p><strong>📅 Ngày:</strong> 05/04</p>
+
+        <p><strong>📚 Nội dung:</strong></p>
+        <p>Học Scratch: vòng lặp, điều kiện if-else</p>
+
+        <!-- VIDEO -->
+        <div class="video-box mb-3">
+            <video width="100%" controls>
+                <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+            </video>
+        </div>
+
+        <!-- NHẬN XÉT -->
+        <div class="alert alert-success">
+            📝 Nhận xét: Học tốt, hiểu bài nhanh, cần luyện thêm.
+        </div>
+
+        <!-- STICKER -->
+        <div>
+            ⭐ ⭐ 🧠
+        </div>
+    </div>
+
+    <!-- ROW -->
+    <div class="row">
+
+        <!-- LỊCH HỌC -->
+        <div class="col-md-6 mb-4">
+            <div class="card p-3">
+                <h5>📆 Lịch học</h5>
+                <ul>
+                    <li>Thứ 3: 9h - 10h</li>
+                    <li>Thứ 5: 9h - 10h</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ĐIỂM DANH -->
+        <div class="col-md-6 mb-4">
+            <div class="card p-3">
+                <h5>📊 Điểm danh</h5>
+                <p>✔ Có mặt: 18 buổi</p>
+                <p>❌ Vắng: 2 buổi</p>
+            </div>
+        </div>
+
+        <!-- TIẾN ĐỘ -->
+        <div class="col-md-6 mb-4">
+            <div class="card p-3">
+                <h5>📈 Tiến độ học tập</h5>
+                <div class="progress">
+                    <div class="progress-bar bg-success" style="width: 60%;">60%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HỌC PHÍ -->
+        <div class="col-md-6 mb-4">
+            <div class="card p-3">
+                <h5>💰 Học phí</h5>
+                <p>✔ Đã đóng: 2.000.000 VNĐ</p>
+                <p>❌ Còn thiếu: 500.000 VNĐ</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- THÔNG BÁO -->
+    <div class="card p-3">
+        <h5>🔔 Thông báo</h5>
+        <ul>
+            <li>📢 Buổi học mới đã được cập nhật</li>
+            <li>📢 Nhắc đóng học phí</li>
+        </ul>
+    </div>
+
+</div>
+
+</body>
+</html>
+```
