@@ -28,7 +28,7 @@
                                         <label>Tên</label>
                                     </div>
                                     <div class="col-lg-8 col-8">
-                                        <input type="text" name="name" class="form-control"
+                                        <input type="text" name="name" class="form-control" maxlength="100"
                                             value="<?= htmlspecialchars($teacher['name']) ?>">
                                     </div>
                                 </div>
@@ -41,7 +41,7 @@
                                         <label>Email</label>
                                     </div>
                                     <div class="col-lg-8 col-8">
-                                        <input type="email" name="email" class="form-control"
+                                        <input type="email" name="email" class="form-control" maxlength="150"
                                             value="<?= htmlspecialchars($teacher['email']) ?>">
                                     </div>
                                 </div>
@@ -54,7 +54,7 @@
                                         <label>Chuyên môn</label>
                                     </div>
                                     <div class="col-lg-8 col-8">
-                                        <input type="text" name="specialization" class="form-control"
+                                        <input type="text" name="specialization" class="form-control" maxlength="100"
                                             value="<?= $teacher['specialization'] ?>">
                                     </div>
                                 </div>
@@ -67,7 +67,7 @@
                                         <label>Ngày vào</label>
                                     </div>
                                     <div class="col-lg-8 col-8">
-                                        <input type="date" name="hire_date" class="form-control"
+                                        <input type="date" name="hire_date" class="form-control" max="<?= date('Y-m-d') ?>"
                                             value="<?= $teacher['hire_date'] ?>">
                                     </div>
                                 </div>
@@ -99,7 +99,7 @@
                                         <label>Giá trị</label>
                                     </div>
                                     <div class="col-lg-8 col-8">
-                                        <input type="number" name="salary_value" class="form-control"
+                                        <input type="number" name="salary_value" class="form-control" min="0" max="10000000" step="1000"
                                             value="<?= $teacher['salary_value'] ?>">
                                     </div>
                                 </div>
@@ -114,10 +114,10 @@
                                     <div class="col-lg-8 col-8">
                                         <select name="status" class="form-control">
                                             <option value="1" <?= $teacher['status'] == 1 ? 'selected' : '' ?>>
-                                                Active
+                                                Hoạt động
                                             </option>
                                             <option value="0" <?= $teacher['status'] == 0 ? 'selected' : '' ?>>
-                                                Inactive
+                                                Ngưng hoạt động
                                             </option>
                                         </select>
                                     </div>

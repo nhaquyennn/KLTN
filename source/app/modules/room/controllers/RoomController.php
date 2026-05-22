@@ -32,13 +32,20 @@ class RoomController extends Controller
 
     public function store()
     {
-        $model = new RoomModel();
+        try {
+            $model = new RoomModel();
 
-        $model->create([
-            'name' => $_POST['name'],
-            'capacity' => $_POST['capacity'],
-            'status' => $_POST['status']
-        ]);
+            $model->create([
+                'name' => $_POST['name'],
+                'capacity' => $_POST['capacity'],
+                'status' => $_POST['status']
+            ]);
+            $_SESSION['success'] = 'Thêm phòng học thành công';
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
+            header("Location: ?module=room&action=create");
+            exit;
+        }
 
         header("Location: ?module=room");
         exit;

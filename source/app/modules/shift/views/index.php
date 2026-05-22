@@ -50,7 +50,7 @@
 
                                 <!-- KEYWORD -->
                                 <div class="col-md-3">
-                                    <input type="text" name="keyword" class="form-control" placeholder="Tìm ca học..."
+                                    <input type="text" name="keyword" class="form-control" placeholder="Tìm ca học..." maxlength="100"
                                         value="<?= htmlspecialchars($filters['keyword']) ?>">
                                 </div>
 
@@ -62,7 +62,7 @@
 
                                     <a href="?module=shift" class="btn btn-secondary">
 
-                                        Reset
+                                        Đặt lại
                                     </a>
                                 </div>
 
@@ -76,7 +76,7 @@
                                         <th>Tên ca</th>
                                         <th>Bắt đầu</th>
                                         <th>Kết thúc</th>
-                                        <th>Action</th>
+                                        <th>Thao tác</th>
                                     </tr>
                                 </thead>
 
@@ -89,10 +89,10 @@
                                             <td><?= $s['end_time'] ?></td>
                                             <td>
                                                 <a href="?module=shift&action=edit&id=<?= $s['shift_id'] ?>"
-                                                    class="btn btn-warning btn-sm">Edit</a>
+                                                    class="btn btn-warning btn-sm">Sửa</a>
                                                 <a href="?module=shift&action=delete&id=<?= $s['shift_id'] ?>"
                                                     class="btn btn-danger btn-sm"
-                                                    onclick="return confirm('Xóa?')">Delete</a>
+                                                    onclick="return confirm('Xóa?')">Xóa</a>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>

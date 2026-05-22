@@ -37,7 +37,7 @@
 
                             <div class="row">
                                 <div class="col-md-3">
-                                    <input type="text" name="keyword" class="form-control" placeholder="Tìm khóa học..."
+                                    <input type="text" name="keyword" class="form-control" placeholder="Tìm khóa học..." maxlength="100"
                                         value="<?= htmlspecialchars($filters['keyword'] ?? '') ?>">
                                 </div>
 
@@ -101,7 +101,7 @@
 
                                 <div class="col-md-3 mt-2 d-flex gap-2">
                                     <button class="btn btn-primary">Lọc</button>
-                                    <a href="?module=class" class="btn btn-secondary">Reset</a>
+                                    <a href="?module=class" class="btn btn-secondary">Đặt lại</a>
                                 </div>
                             </div>
                         </form>

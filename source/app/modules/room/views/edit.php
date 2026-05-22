@@ -23,14 +23,14 @@
                             <!-- TÊN PHÒNG -->
                             <div class="mb-3">
                                 <label class="form-label">Tên phòng</label>
-                                <input type="text" name="name" class="form-control"
+                                <input type="text" name="name" class="form-control" maxlength="50"
                                     value="<?= htmlspecialchars($room['name']) ?>" required>
                             </div>
 
                             <!-- SỨC CHỨA -->
                             <div class="mb-3">
                                 <label class="form-label">Sức chứa</label>
-                                <input type="number" name="capacity" class="form-control" min="1"
+                                <input type="number" name="capacity" class="form-control" min="1" max="500" step="1"
                                     value="<?= $room['capacity'] ?>" required>
                             </div>
 

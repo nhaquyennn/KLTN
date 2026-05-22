@@ -22,7 +22,7 @@
                         </option>
                     <?php endfor; ?>
                 </select>
-                <input type="number" name="year" class="form-control" value="<?= (int) $year ?>" style="width:110px">
+                <input type="number" name="year" class="form-control" value="<?= (int) $year ?>" min="2000" max="2100" step="1" style="width:110px">
                 <button class="btn btn-outline-primary" type="submit">
                     <i class="bi bi-filter"></i>
                     Lọc

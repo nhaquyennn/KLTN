@@ -61,7 +61,7 @@
 
                         <!-- KEYWORD -->
                         <div class="col-md-4">
-                            <input type="text" name="keyword" class="form-control"
+                            <input type="text" name="keyword" class="form-control" maxlength="100"
                                 placeholder="Tên học viên / SĐT / phụ huynh" value="<?= $_GET['keyword'] ?? '' ?>">
                         </div>
 
@@ -81,7 +81,7 @@
                         <!-- BUTTON -->
                         <div class="col-md-3">
                             <button class="btn btn-primary">Lọc</button>
-                            <a href="?module=student" class="btn btn-secondary">Reset</a>
+                            <a href="?module=student" class="btn btn-secondary">Đặt lại</a>
                         </div>
 
                     </div>
@@ -100,7 +100,7 @@
                                     <th>Ngày sinh</th>
                                     <th>Trạng thái</th>
                                     <?php if (!$isTeacher): ?>
-                                        <th class="text-center">ACTION</th>
+                                        <th class="text-center">Thao tác</th>
                                     <?php endif; ?>
                                 </tr>
                             </thead>

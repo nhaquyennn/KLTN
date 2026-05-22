@@ -1,6 +1,6 @@
 <?php
 // Tách dữ liệu theo loại để hiển thị (Lọc từ biến $salary_levels của Controller)
-$type_filter = $_GET['type'] ?? 'per_session';
+$type_filter = 'per_session';
 $filtered_levels = array_filter($salary_levels, function ($item) use ($type_filter) {
     return $item['type'] === $type_filter;
 });
@@ -73,6 +73,18 @@ $total_gv_all = array_sum(array_column($salary_levels, 'teacher_count'));
 
                             </form>
 
+                            <form action="?module=teacher&action=autoPromoteSalaryLevels"
+                                method="POST"
+                                class="m-0"
+                                onsubmit="return confirm('Tự động tăng bậc lương cho các giảng viên đủ điều kiện?')">
+
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-arrow-up-circle"></i>
+                                    Tự động tăng bậc
+                                </button>
+
+                            </form>
+
                         </div>
 
                     </div>
@@ -82,6 +94,16 @@ $total_gv_all = array_sum(array_column($salary_levels, 'teacher_count'));
 
             </div>
 
+            <?php if (isset($_GET['promoted'])): ?>
+                <div class="alert alert-info mt-3">
+                    Đã kiểm tra <?= (int) ($_GET['checked'] ?? 0) ?> giảng viên,
+                    tăng bậc cho <?= (int) ($_GET['promoted'] ?? 0) ?> giảng viên.
+                    <?php if ((int) ($_GET['skipped'] ?? 0) > 0): ?>
+                        <?= (int) $_GET['skipped'] ?> giảng viên chưa đủ điều kiện hoặc đã ở đúng bậc.
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+
             <div class="card mt-4" style="border:none; box-shadow: 0 10px 30px rgba(0,0,0,0.05)">
                 <div class="card-head"
                     style="padding: 20px; border-bottom: 1px solid #f1f1f1; display:flex; justify-content:space-between; align-items:center">
@@ -89,7 +111,7 @@ $total_gv_all = array_sum(array_column($salary_levels, 'teacher_count'));
                         <div class="card-title" style="font-size:15px; font-weight:700">Cấu hình bậc lương</div>
                     </div>
                     <div style="display:flex;gap:12px;align-items:center">
-                        <div class="type-toggle"
+                        <div class="type-toggle" hidden
                             style="background:#f1f3f9; padding:4px; border-radius:10px; display:flex; gap:4px">
                             <button class="type-btn <?= ($type_filter == 'per_session') ? 'active' : '' ?>"
                                 onclick="location.href='?module=teacher&action=salary_config&type=per_session'">Lương theo
@@ -132,7 +154,7 @@ $total_gv_all = array_sum(array_column($salary_levels, 'teacher_count'));
                     </td>
 
                     <td>
-                        <input name="level_name[]" class="table-input" style="width:200px"
+                        <input name="level_name[]" class="table-input" style="width:200px" maxlength="100" required
                             value="<?= htmlspecialchars($level['level_name']) ?>">
                     </td>
 
@@ -140,6 +162,10 @@ $total_gv_all = array_sum(array_column($salary_levels, 'teacher_count'));
                         <div style="display:flex; align-items:center; gap:5px">
                             <input 
                                 name="sessions[]"
+                                type="number"
+                                min="0"
+                                max="10000"
+                                step="1"
                                 class="table-input text-center"
                                 style="
                                     width:60px;
@@ -156,10 +182,13 @@ $total_gv_all = array_sum(array_column($salary_levels, 'teacher_count'));
                 <td>
                         <div style="display:flex; align-items:center; gap:5px"> 
                             <input 
-                                type="text"
+                                type="number"
                                 name="amount[]"
                                 class="table-input fw-bold text-end money-input"
                                 style="width:110px; color:#435ebe"
+                                min="0"
+                                max="100000000"
+                                step="1000"
                                 value="<?= (int)$level['amount'] ?>"
                             >
                         

@@ -17,22 +17,22 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label>Họ tên</label>
-                                <input type="text" name="name" class="form-control" required>
+                                <input type="text" name="name" class="form-control" maxlength="100" required>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label>Email đăng nhập</label>
-                                <input type="email" name="email" class="form-control" required>
+                                <input type="email" name="email" class="form-control" maxlength="150" required>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label>Mật khẩu</label>
-                                <input type="text" name="password" class="form-control" required>
+                                <input type="password" name="password" class="form-control" minlength="6" maxlength="255" autocomplete="new-password" required>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label>Số điện thoại</label>
-                                <input type="text" name="phone" class="form-control">
+                                <input type="tel" name="phone" class="form-control" maxlength="20" pattern="[0-9+\-\s]{9,20}">
                             </div>
 
                             <div class="col-md-6 mb-3">

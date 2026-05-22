@@ -59,15 +59,22 @@ class CourseController extends Controller
     public function store()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $model = new CourseModel();
+            try {
+                $model = new CourseModel();
 
-            $data = [
-                'name' => $_POST['name'],
-                'description' => $_POST['description'] ?? '',
-                'status' => $_POST['status'] ?? 'active'
-            ];
+                $data = [
+                    'name' => $_POST['name'],
+                    'description' => $_POST['description'] ?? '',
+                    'status' => $_POST['status'] ?? 'active'
+                ];
 
-            $model->create($data);
+                $model->create($data);
+                $_SESSION['success'] = 'Thêm khóa học thành công';
+            } catch (Exception $e) {
+                $_SESSION['error'] = $e->getMessage();
+                header("Location: ?module=course&action=create");
+                exit;
+            }
         }
 
         header("Location: ?module=course");

@@ -7,6 +7,7 @@ class AccountModel
     public function __construct()
     {
         $this->db = (new Database())->connect();
+        $this->ensureDeletedAccountColumn();
     }
 
     public function getAll($filters = [], $limit = 10, $offset = 0)
@@ -19,11 +20,16 @@ class AccountModel
                 phone,
                 role,
                 status,
+                deleted_at,
                 created_at,
                 CASE WHEN password IS NULL OR password = '' THEN 0 ELSE 1 END AS has_password
             FROM users
             WHERE 1
         ";
+
+        $sql .= !empty($filters['deleted'])
+            ? " AND deleted_at IS NOT NULL"
+            : " AND deleted_at IS NULL";
 
         if (!empty($filters['keyword'])) {
             $sql .= " AND (name LIKE :keyword OR email LIKE :keyword OR phone LIKE :keyword)";
@@ -56,6 +62,10 @@ class AccountModel
             WHERE 1
         ";
 
+        $sql .= !empty($filters['deleted'])
+            ? " AND deleted_at IS NOT NULL"
+            : " AND deleted_at IS NULL";
+
         if (!empty($filters['keyword'])) {
             $sql .= " AND (name LIKE :keyword OR email LIKE :keyword OR phone LIKE :keyword)";
         }
@@ -85,6 +95,7 @@ class AccountModel
                 phone,
                 role,
                 status,
+                deleted_at,
                 CASE WHEN password IS NULL OR password = '' THEN 0 ELSE 1 END AS has_password
             FROM users
             WHERE user_id = ?
@@ -117,6 +128,7 @@ class AccountModel
             UPDATE users
             SET name = ?, email = ?, role = ?, phone = ?, status = ?
             WHERE user_id = ?
+            AND deleted_at IS NULL
         ");
 
         $ok = $stmt->execute([
@@ -133,6 +145,7 @@ class AccountModel
                 UPDATE users
                 SET password = ?
                 WHERE user_id = ?
+                AND deleted_at IS NULL
             ");
             $stmtPassword->execute([
                 $data['password'],
@@ -149,6 +162,7 @@ class AccountModel
             UPDATE users
             SET status = ?
             WHERE user_id = ?
+            AND deleted_at IS NULL
         ");
 
         return $stmt->execute([(int) $status, (int) $id]);
@@ -159,11 +173,40 @@ class AccountModel
         $stmt = $this->db->prepare("
             UPDATE users
             SET status = 0,
-                password = ''
+                deleted_at = NOW()
             WHERE user_id = ?
+            AND deleted_at IS NULL
         ");
 
         return $stmt->execute([(int) $id]);
+    }
+
+    public function restoreAccount($id)
+    {
+        $stmt = $this->db->prepare("
+            UPDATE users
+            SET deleted_at = NULL,
+                status = CASE
+                    WHEN password IS NULL OR password = '' THEN 0
+                    ELSE 1
+                END
+            WHERE user_id = ?
+            AND deleted_at IS NOT NULL
+        ");
+
+        return $stmt->execute([(int) $id]);
+    }
+
+    public function permanentlyDeleteAccount($id)
+    {
+        $stmt = $this->db->prepare("
+            DELETE FROM users
+            WHERE user_id = ?
+            AND deleted_at IS NOT NULL
+        ");
+
+        $stmt->execute([(int) $id]);
+        return $stmt->rowCount() > 0;
     }
 
     private function bindFilters($stmt, $filters)
@@ -185,5 +228,30 @@ class AccountModel
     {
         $allowed = ['admin', 'teacher', 'parent', 'student'];
         return in_array($role, $allowed, true) ? $role : 'student';
+    }
+
+    private function ensureDeletedAccountColumn()
+    {
+        $stmt = $this->db->prepare("
+            SELECT COUNT(*)
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = 'users'
+            AND COLUMN_NAME = 'deleted_at'
+        ");
+        $stmt->execute();
+
+        if ((int) $stmt->fetchColumn() === 0) {
+            $this->db->exec("ALTER TABLE users ADD COLUMN deleted_at DATETIME NULL AFTER status");
+        }
+
+        // Legacy account deletion cleared password and locked the row.
+        $this->db->exec("
+            UPDATE users
+            SET deleted_at = NOW()
+            WHERE deleted_at IS NULL
+            AND status = 0
+            AND (password IS NULL OR password = '')
+        ");
     }
 }

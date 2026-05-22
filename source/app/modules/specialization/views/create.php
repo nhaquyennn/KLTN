@@ -43,6 +43,7 @@
                             <input type="text"
                                 name="name"
                                 class="form-control"
+                                maxlength="100"
                                 required>
 
                         </div>
@@ -56,6 +57,7 @@
 
                             <textarea name="description"
                                 class="form-control"
+                                maxlength="1000"
                                 rows="4"></textarea>
 
                         </div>

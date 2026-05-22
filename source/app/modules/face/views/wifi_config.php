@@ -58,7 +58,7 @@
                                 <label class="form-label fw-bold" for="allowedCidrs">
                                     IP/subnet được phép
                                 </label>
-                                <textarea id="allowedCidrs" name="allowed_cidrs" class="form-control" rows="8"
+                                <textarea id="allowedCidrs" name="allowed_cidrs" class="form-control" rows="8" maxlength="5000"
                                     placeholder="192.168.1.0/24&#10;127.0.0.1/32"><?= htmlspecialchars(implode("\n", $config['allowed_cidrs'] ?? [])) ?></textarea>
                                 <small class="text-muted">
                                     Nhập mỗi dòng một IP hoặc CIDR. Ví dụ: 192.168.1.0/24, 10.0.0.15, ::1/128.
@@ -69,7 +69,7 @@
                                 <label class="form-label fw-bold" for="blockedMessage">
                                     Thông báo khi không đúng WiFi
                                 </label>
-                                <textarea id="blockedMessage" name="blocked_message" class="form-control" rows="3"><?= htmlspecialchars($config['blocked_message'] ?? '') ?></textarea>
+                                <textarea id="blockedMessage" name="blocked_message" class="form-control" rows="3" maxlength="500"><?= htmlspecialchars($config['blocked_message'] ?? '') ?></textarea>
                             </div>
 
                             <div class="d-flex gap-2">

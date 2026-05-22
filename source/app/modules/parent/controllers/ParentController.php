@@ -80,6 +80,7 @@ class ParentController extends Controller
         $students = $data['students'];
         $selectedStudentId = $this->parentModel->getSelectedStudentId($students);
         $classes = $selectedStudentId ? $this->parentModel->getAvailableClassesForStudent($selectedStudentId) : [];
+        $activeEnrollments = $selectedStudentId ? $this->parentModel->getActiveEnrollments($selectedStudentId) : [];
         $parentInitials = $this->getInitials($parentName);
 
         $view = ROOT_PATH . "/modules/parent/views/packages.php";
@@ -182,7 +183,7 @@ class ParentController extends Controller
         ksort($inputData);
         $secureHash = hash_hmac("sha512", http_build_query($inputData, '', '&'), $vnp_HashSecret);
 
-        if ($secureHash === $vnp_SecureHash) {
+        if ($vnp_SecureHash !== '' && hash_equals($secureHash, $vnp_SecureHash)) {
             $txn = explode("_", $_GET['vnp_TxnRef'] ?? '');
             $enrollmentId = (int) ($txn[0] ?? 0);
             $enrollment = $this->parentModel->findEnrollmentForCurrentParent($enrollmentId);

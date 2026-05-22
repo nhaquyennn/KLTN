@@ -15,12 +15,12 @@
                 </div>
 
                 <div class="card-body">
-                    <form method="POST" action="?module=schedule&action=update">
+                    <form method="POST" action="?module=schedule&action=update" id="scheduleForm">
 
                         <input type="hidden" name="schedule_id" value="<?= $schedule['schedule_id'] ?>">
 
-                        <input type="text" name="name" value="<?= $schedule['name'] ?>" class="form-control">
-                        <input type="text" name="code" value="<?= $schedule['code'] ?>" class="form-control">
+                        <input type="text" name="name" value="<?= $schedule['name'] ?>" class="form-control" maxlength="100" required>
+                        <input type="text" name="code" value="<?= $schedule['code'] ?>" class="form-control" maxlength="50" pattern="[A-Za-z0-9_-]+">
 
                         <label>Ngày học</label><br>
 
@@ -41,3 +41,12 @@
 
     </div>
 </div>
+
+<script>
+document.getElementById('scheduleForm')?.addEventListener('submit', function (event) {
+    if (!this.querySelector('input[name="days[]"]:checked')) {
+        event.preventDefault();
+        alert('Vui lòng chọn ít nhất một ngày học.');
+    }
+});
+</script>

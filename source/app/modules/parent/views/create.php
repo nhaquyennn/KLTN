@@ -20,25 +20,25 @@
                             <!-- TÊN -->
                             <div class="col-md-6">
                                 <label>Tên giảng viên</label>
-                                <input type="text" name="name" class="form-control" required>
+                                <input type="text" name="name" class="form-control" maxlength="100" required>
                             </div>
 
                             <!-- EMAIL -->
                             <div class="col-md-6">
                                 <label>Email</label>
-                                <input type="email" name="email" class="form-control" required>
+                                <input type="email" name="email" class="form-control" maxlength="150" required>
                             </div>
 
                             <!-- CHUYÊN MÔN -->
                             <div class="col-md-6">
                                 <label>Chuyên môn</label>
-                                <input type="text" name="specialization" class="form-control">
+                                <input type="text" name="specialization" class="form-control" maxlength="100">
                             </div>
 
                             <!-- NGÀY VÀO -->
                             <div class="col-md-6">
                                 <label>Ngày vào</label>
-                                <input type="date" name="hire_date" class="form-control">
+                                <input type="date" name="hire_date" class="form-control" max="<?= date('Y-m-d') ?>">
                             </div>
 
                             <!-- LOẠI LƯƠNG -->
@@ -53,15 +53,15 @@
                             <!-- GIÁ TRỊ LƯƠNG -->
                             <div class="col-md-6">
                                 <label>Giá trị lương</label>
-                                <input type="number" name="salary_value" class="form-control">
+                                <input type="number" name="salary_value" class="form-control" min="0" max="10000000" step="1000">
                             </div>
 
                             <!-- TRẠNG THÁI -->
                             <div class="col-md-6">
                                 <label>Trạng thái</label>
                                 <select name="status" class="form-control">
-                                    <option value="1">Active</option>
-                                    <option value="0">Inactive</option>
+                                    <option value="1">Hoạt động</option>
+                                    <option value="0">Ngưng hoạt động</option>
                                 </select>
                             </div>
 

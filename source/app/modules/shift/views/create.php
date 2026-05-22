@@ -16,17 +16,17 @@
                     <form method="POST" action="?module=shift&action=store">
                         <div class="mb-2">
                             <label>Tên ca</label>
-                            <input type="text" name="name" class="form-control">
+                            <input type="text" name="name" class="form-control" maxlength="50" required>
                         </div>
 
                         <div class="mb-2">
                             <label>Giờ bắt đầu</label>
-                            <input type="time" name="start_time" class="form-control">
+                            <input type="time" name="start_time" class="form-control" required>
                         </div>
 
                         <div class="mb-2">
                             <label>Giờ kết thúc</label>
-                            <input type="time" name="end_time" class="form-control">
+                            <input type="time" name="end_time" class="form-control" required>
                         </div>
 
                         <button class="btn btn-success">Thêm</button>

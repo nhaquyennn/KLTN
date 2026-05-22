@@ -8,11 +8,12 @@ class PackageModel
         $this->db = (new Database())->connect();
     }
 
-    public function getAll($keyword = '', $status = '', $limit = 5, $offset = 0)
+    public function getAll($keyword = '', $status = '', $limit = 5, $offset = 0, $course_id = '')
     {
         $sql = "SELECT p.*, c.name AS course_name
                 FROM packages p
-                LEFT JOIN courses c ON p.course_id = c.course_id";
+                LEFT JOIN courses c ON p.course_id = c.course_id
+                WHERE 1=1";
         $params = [];
 
         if (!empty($course_id)) {
@@ -21,7 +22,7 @@ class PackageModel
         }
 
         if (!empty($keyword)) {
-            $sql .= " AND name LIKE ?";
+            $sql .= " AND p.name LIKE ?";
             $params[] = "%$keyword%";
         }
 
@@ -38,7 +39,7 @@ class PackageModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function countAll($keyword = '', $status = '')
+    public function countAll($keyword = '', $status = '', $course_id = '')
     {
         $sql = "SELECT COUNT(*) FROM packages WHERE 1=1";
         $params = [];
@@ -49,8 +50,13 @@ class PackageModel
         }
 
         if ($status !== '') {
-            $sql .= " AND status = ?";
+            $sql .= " AND p.status = ?";
             $params[] = $status;
+        }
+
+        if (!empty($course_id)) {
+            $sql .= " AND course_id = ?";
+            $params[] = $course_id;
         }
 
         $stmt = $this->db->prepare($sql);
@@ -73,12 +79,24 @@ class PackageModel
 
     public function create($data)
     {
+        $courseId = (int) ($data['course_id'] ?? 0);
+        $name = trim((string) ($data['name'] ?? ''));
+
+        if (!$courseId || $name === '') {
+            throw new Exception('Vui lòng chọn khóa học và nhập tên gói học');
+        }
+
+        if ($this->nameExistsInCourse($courseId, $name)) {
+            throw new Exception('Gói học này đã tồn tại trong khóa học đã chọn');
+        }
+
         $stmt = $this->db->prepare("
-            INSERT INTO packages (name, total_sessions, price, status)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO packages (course_id, name, total_sessions, price, status)
+            VALUES (?, ?, ?, ?, ?)
         ");
         return $stmt->execute([
-            $data['name'],
+            $courseId,
+            $name,
             $data['total_sessions'],
             $data['price'],
             $data['status']
@@ -123,5 +141,18 @@ class PackageModel
         $stmt->execute([$course_id]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function nameExistsInCourse($courseId, $name)
+    {
+        $stmt = $this->db->prepare("
+            SELECT 1
+            FROM packages
+            WHERE course_id = ?
+            AND LOWER(TRIM(name)) = LOWER(TRIM(?))
+            LIMIT 1
+        ");
+        $stmt->execute([(int) $courseId, $name]);
+        return (bool) $stmt->fetchColumn();
     }
 }

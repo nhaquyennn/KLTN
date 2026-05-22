@@ -19,43 +19,43 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label>Tên học viên</label>
-                                <input type="text" name="name" class="form-control"
+                                <input type="text" name="name" class="form-control" maxlength="100"
                                     value="<?= htmlspecialchars($student['student_name'] ?? '') ?>" required>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label>SĐT học viên</label>
-                                <input type="text" name="phone" class="form-control"
+                                <input type="tel" name="phone" class="form-control" maxlength="20" pattern="[0-9+\-\s]{9,20}"
                                     value="<?= htmlspecialchars($student['student_phone'] ?? '') ?>" required>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label>Email đăng nhập</label>
-                                <input type="email" name="email" class="form-control"
+                                <input type="email" name="email" class="form-control" maxlength="150"
                                     value="<?= htmlspecialchars($student['student_email'] ?? '') ?>" required>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label>Mật khẩu mới</label>
-                                <input type="text" name="password" class="form-control"
+                                <input type="password" name="password" class="form-control" minlength="6" maxlength="255" autocomplete="new-password"
                                     placeholder="Để trống nếu không đổi">
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label>Phụ huynh</label>
-                                <input type="text" name="parent_name" class="form-control"
+                                <input type="text" name="parent_name" class="form-control" maxlength="100"
                                     value="<?= htmlspecialchars($student['parent_name'] ?? '') ?>">
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label>SĐT phụ huynh</label>
-                                <input type="text" name="parent_phone" class="form-control"
+                                <input type="tel" name="parent_phone" class="form-control" maxlength="20" pattern="[0-9+\-\s]{9,20}"
                                     value="<?= htmlspecialchars($student['parent_phone'] ?? '') ?>">
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label>Ngày sinh</label>
-                                <input type="date" name="date_of_birth" class="form-control"
+                                <input type="date" name="date_of_birth" class="form-control" max="<?= date('Y-m-d') ?>"
                                     value="<?= htmlspecialchars($student['date_of_birth'] ?? '') ?>">
                             </div>
 

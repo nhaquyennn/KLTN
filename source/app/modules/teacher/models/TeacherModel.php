@@ -8,6 +8,7 @@ class TeacherModel
     {
         $database = new Database();
         $this->db = $database->connect();
+        $this->ensureTeacherSpecializationsTable();
     }
 
     // ===== DROPDOWN =====
@@ -32,20 +33,33 @@ class TeacherModel
             'keyword' => null,
             'specialization' => null,
             'salary_type' => null,
+            'level_id' => null,
             'status' => null
         ], $filters ?? []);
 
         $sql = "
             SELECT 
                 t.*,
+                COALESCE(sl.amount, t.salary_value) AS salary_value,
+                sl.level_name,
+                sl.level AS salary_level,
                 u.name,
                 u.email,
-                s.name AS specialization_name
+                COALESCE(
+                    GROUP_CONCAT(DISTINCT sp_all.name ORDER BY sp_all.name SEPARATOR ', '),
+                    s.name
+                ) AS specialization_name
             FROM teachers t
             JOIN users u 
                 ON t.user_id = u.user_id
             LEFT JOIN specializations s
                 ON t.specialization_id = s.specialization_id
+            LEFT JOIN teacher_specializations ts_all
+                ON ts_all.teacher_id = t.teacher_id
+            LEFT JOIN specializations sp_all
+                ON sp_all.specialization_id = ts_all.specialization_id
+            LEFT JOIN salary_levels sl
+                ON sl.id = t.current_level_id
             WHERE 1
         ";
 
@@ -54,11 +68,25 @@ class TeacherModel
         }
 
         if (!empty($filters['specialization'])) {
-            $sql .= " AND t.specialization_id = :specialization";
+            $sql .= "
+                AND (
+                    t.specialization_id = :specialization
+                    OR EXISTS (
+                        SELECT 1
+                        FROM teacher_specializations ts_filter
+                        WHERE ts_filter.teacher_id = t.teacher_id
+                        AND ts_filter.specialization_id = :specialization_exists
+                    )
+                )
+            ";
         }
 
         if ($filters['salary_type'] !== null && $filters['salary_type'] !== '') {
             $sql .= " AND t.salary_type = :salary_type";
+        }
+
+        if ($filters['level_id'] !== null && $filters['level_id'] !== '') {
+            $sql .= " AND t.current_level_id = :level_id";
         }
 
         if ($filters['status'] !== null && $filters['status'] !== '') {
@@ -66,6 +94,7 @@ class TeacherModel
         }
 
         $sql .= "
+            GROUP BY t.teacher_id
             ORDER BY t.teacher_id DESC
             LIMIT :limit OFFSET :offset
         ";
@@ -78,10 +107,15 @@ class TeacherModel
 
         if (!empty($filters['specialization'])) {
             $stmt->bindValue(':specialization', $filters['specialization']);
+            $stmt->bindValue(':specialization_exists', $filters['specialization']);
         }
 
         if ($filters['salary_type'] !== null && $filters['salary_type'] !== '') {
             $stmt->bindValue(':salary_type', $filters['salary_type']);
+        }
+
+        if ($filters['level_id'] !== null && $filters['level_id'] !== '') {
+            $stmt->bindValue(':level_id', (int) $filters['level_id'], PDO::PARAM_INT);
         }
 
         if ($filters['status'] !== null && $filters['status'] !== '') {
@@ -112,11 +146,25 @@ class TeacherModel
         }
 
         if (!empty($filters['specialization'])) {
-            $sql .= " AND t.specialization_id = :specialization";
+            $sql .= "
+                AND (
+                    t.specialization_id = :specialization
+                    OR EXISTS (
+                        SELECT 1
+                        FROM teacher_specializations ts_filter
+                        WHERE ts_filter.teacher_id = t.teacher_id
+                        AND ts_filter.specialization_id = :specialization_exists
+                    )
+                )
+            ";
         }
 
         if ($filters['salary_type'] !== null && $filters['salary_type'] !== '') {
             $sql .= " AND t.salary_type = :salary_type";
+        }
+
+        if ($filters['level_id'] !== null && $filters['level_id'] !== '') {
+            $sql .= " AND t.current_level_id = :level_id";
         }
 
         if ($filters['status'] !== null && $filters['status'] !== '') {
@@ -131,10 +179,15 @@ class TeacherModel
 
         if (!empty($filters['specialization'])) {
             $stmt->bindValue(':specialization', $filters['specialization']);
+            $stmt->bindValue(':specialization_exists', $filters['specialization']);
         }
 
         if ($filters['salary_type'] !== null && $filters['salary_type'] !== '') {
             $stmt->bindValue(':salary_type', $filters['salary_type']);
+        }
+
+        if ($filters['level_id'] !== null && $filters['level_id'] !== '') {
+            $stmt->bindValue(':level_id', (int) $filters['level_id'], PDO::PARAM_INT);
         }
 
         if ($filters['status'] !== null && $filters['status'] !== '') {
@@ -154,13 +207,17 @@ class TeacherModel
                 t.*,
                 u.name,
                 u.email,
-                s.name AS specialization_name
+                s.name AS specialization_name,
+                GROUP_CONCAT(DISTINCT ts.specialization_id ORDER BY ts.specialization_id) AS specialization_ids
             FROM teachers t
             JOIN users u 
                 ON t.user_id = u.user_id
             LEFT JOIN specializations s
                 ON t.specialization_id = s.specialization_id
+            LEFT JOIN teacher_specializations ts
+                ON ts.teacher_id = t.teacher_id
             WHERE t.teacher_id = :id
+            GROUP BY t.teacher_id
         ";
 
         $stmt = $this->db->prepare($sql);
@@ -229,6 +286,9 @@ class TeacherModel
                 'status' => $data['status']
             ]);
 
+            $teacherId = (int) $this->db->lastInsertId();
+            $this->syncTeacherSpecializations($teacherId, $data['specialization_ids'] ?? [$data['specialization_id']]);
+
             $this->db->commit();
 
         } catch (Exception $e) {
@@ -285,7 +345,7 @@ class TeacherModel
 
         $stmt2 = $this->db->prepare($sql2);
 
-        return $stmt2->execute([
+        $ok = $stmt2->execute([
             'specialization_id' => $data['specialization_id'],
             'hire_date' => $data['hire_date'],
             'salary_type' => $data['salary_type'],
@@ -293,6 +353,12 @@ class TeacherModel
             'status' => $data['status'] ?? 1,
             'id' => $data['teacher_id']
         ]);
+
+        if ($ok) {
+            $this->syncTeacherSpecializations((int) $data['teacher_id'], $data['specialization_ids'] ?? [$data['specialization_id']]);
+        }
+
+        return $ok;
     }
 
     // ===== DELETE =====
@@ -398,5 +464,106 @@ class TeacherModel
         }
 
         return $data;
+    }
+
+    public function getTeachingHistoryByTeacherId($teacherId, $month = null, $year = null)
+    {
+        $params = [$teacherId];
+        $whereClauses = "WHERE t.teacher_id = ?";
+
+        if ($month) {
+            $whereClauses .= " AND MONTH(s.session_date) = ?";
+            $params[] = $month;
+        }
+
+        if ($year) {
+            $whereClauses .= " AND YEAR(s.session_date) = ?";
+            $params[] = $year;
+        }
+
+        $sql = "
+            SELECT 
+                s.session_date,
+                c.class_code,
+                co.name AS course_name,
+                p.name AS package_name,
+                sh.name AS shift_name,
+                sh.start_time,
+                sh.end_time,
+                st.role
+            FROM teachers t
+            JOIN session_teachers st ON t.teacher_id = st.teacher_id
+            JOIN sessions s ON st.session_id = s.session_id
+            JOIN classes c ON s.class_id = c.class_id
+            JOIN courses co ON c.course_id = co.course_id
+            JOIN packages p ON c.package_id = p.package_id
+            LEFT JOIN shifts sh ON s.shift_id = sh.shift_id
+            $whereClauses
+            ORDER BY s.session_date DESC
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($data as &$row) {
+            $parts = explode('-', $row['class_code'] ?? '');
+            $suffix = end($parts);
+            $row['class_display_name'] = $row['course_name'] . ' - ' . $row['package_name'] . ' (' . $suffix . ')';
+
+            $row['time_range'] = ($row['start_time'] && $row['end_time'])
+                ? date('H:i', strtotime($row['start_time'])) . ' - ' . date('H:i', strtotime($row['end_time']))
+                : 'N/A';
+        }
+
+        return $data;
+    }
+
+    private function ensureTeacherSpecializationsTable()
+    {
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS teacher_specializations (
+                teacher_id INT NOT NULL,
+                specialization_id INT NOT NULL,
+                PRIMARY KEY (teacher_id, specialization_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        ");
+
+        $this->db->exec("
+            INSERT IGNORE INTO teacher_specializations (teacher_id, specialization_id)
+            SELECT teacher_id, specialization_id
+            FROM teachers
+            WHERE specialization_id IS NOT NULL
+            AND specialization_id <> 0
+        ");
+    }
+
+    private function syncTeacherSpecializations($teacherId, $specializationIds)
+    {
+        $ids = [];
+
+        foreach ((array) $specializationIds as $id) {
+            $id = (int) $id;
+
+            if ($id > 0) {
+                $ids[$id] = $id;
+            }
+        }
+
+        $this->db->prepare("DELETE FROM teacher_specializations WHERE teacher_id = ?")
+            ->execute([(int) $teacherId]);
+
+        if (empty($ids)) {
+            return;
+        }
+
+        $stmt = $this->db->prepare("
+            INSERT IGNORE INTO teacher_specializations (teacher_id, specialization_id)
+            VALUES (?, ?)
+        ");
+
+        foreach ($ids as $id) {
+            $stmt->execute([(int) $teacherId, $id]);
+        }
     }
 }

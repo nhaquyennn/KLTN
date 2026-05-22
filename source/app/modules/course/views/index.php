@@ -50,7 +50,7 @@
 
                             <!-- KEYWORD -->
                             <div class="col-md-4">
-                                <input type="text" name="keyword" class="form-control" placeholder="Tìm tên khóa..."
+                                <input type="text" name="keyword" class="form-control" placeholder="Tìm tên khóa..." maxlength="100"
                                     value="<?= htmlspecialchars($_GET['keyword'] ?? '') ?>">
                             </div>
 
@@ -59,10 +59,10 @@
                                 <select name="status" class="form-control">
                                     <option value="">-- Trạng thái --</option>
                                     <option value="active" <?= ($_GET['status'] ?? '') == 'active' ? 'selected' : '' ?>>
-                                        Active
+                                        Hoạt động
                                     </option>
                                     <option value="inactive" <?= ($_GET['status'] ?? '') == 'inactive' ? 'selected' : '' ?>>
-                                        Inactive</option>
+                                        Ngưng hoạt động</option>
                                 </select>
                             </div>
 
@@ -74,7 +74,7 @@
 
                                 <!-- RESET -->
                                 <a href="?module=course" class="btn btn-secondary">
-                                    <i class="bi bi-arrow-clockwise"></i> Reset
+                                    <i class="bi bi-arrow-clockwise"></i> Đặt lại
                                 </a>
                             </div>
 
@@ -93,7 +93,7 @@
                                             <th>TÊN KHÓA</th>
                                             <th>MÔ TẢ</th>
                                             <th>TRẠNG THÁI</th>
-                                            <th class="text-center">ACTION</th>
+                                            <th class="text-center">Thao tác</th>
                                         </tr>
                                     </thead>
 
@@ -117,9 +117,9 @@
                                                     <!-- STATUS -->
                                                     <td>
                                                         <?php if ($c['status'] == 'active'): ?>
-                                                            <span class="badge bg-success">Active</span>
+                                                            <span class="badge bg-success">Hoạt động</span>
                                                         <?php else: ?>
-                                                            <span class="badge bg-danger">Inactive</span>
+                                                            <span class="badge bg-danger">Ngưng hoạt động</span>
                                                         <?php endif; ?>
                                                     </td>
 
@@ -127,13 +127,13 @@
                                                     <td class="text-center">
                                                         <a href="?module=course&action=edit&id=<?= $c['course_id'] ?>"
                                                             class="btn btn-sm btn-warning">
-                                                            Edit
+                                                            Sửa
                                                         </a>
 
                                                         <a href="?module=course&action=delete&id=<?= $c['course_id'] ?>"
                                                             class="btn btn-sm btn-danger"
                                                             onclick="return confirm('Xóa khóa này?')">
-                                                            Delete
+                                                            Xóa
                                                         </a>
                                                     </td>
                                                 </tr>

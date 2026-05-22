@@ -106,7 +106,7 @@
 
                                 <!-- KEYWORD -->
                                 <div class="col-md-3">
-                                    <input type="text" name="keyword" class="form-control"
+                                    <input type="text" name="keyword" class="form-control" maxlength="100"
                                         placeholder="Tìm tên phòng..."
                                         value="<?= htmlspecialchars($_GET['keyword'] ?? '') ?>">
                                 </div>
@@ -128,14 +128,14 @@
 
                                 <!-- MIN CAPACITY -->
                                 <div class="col-md-2">
-                                    <input type="number" name="min_capacity" class="form-control"
+                                    <input type="number" name="min_capacity" class="form-control" min="1" max="500" step="1"
                                         placeholder="Sức chứa từ"
                                         value="<?= htmlspecialchars($_GET['min_capacity'] ?? '') ?>">
                                 </div>
 
                                 <!-- MAX CAPACITY -->
                                 <div class="col-md-2">
-                                    <input type="number" name="max_capacity" class="form-control" placeholder="Đến"
+                                    <input type="number" name="max_capacity" class="form-control" placeholder="Đến" min="1" max="500" step="1"
                                         value="<?= htmlspecialchars($_GET['max_capacity'] ?? '') ?>">
                                 </div>
 
@@ -160,7 +160,7 @@
                                         <th>Tên phòng</th>
                                         <th>Sức chứa</th>
                                         <th>Trạng thái</th>
-                                        <th>Action</th>
+                                        <th>Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>

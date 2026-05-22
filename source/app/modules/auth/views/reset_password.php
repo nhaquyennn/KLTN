@@ -19,13 +19,13 @@
 
                 <form method="POST" action="?module=auth&action=handleResetPassword">
                     <div class="form-group position-relative has-icon-left mb-4">
-                        <input type="password" name="new_password" class="form-control" minlength="6" placeholder="Mật khẩu mới" required>
+                        <input type="password" name="new_password" class="form-control" minlength="6" maxlength="255" placeholder="Mật khẩu mới" required>
                         <div class="form-control-icon">
                             <i class="bi bi-shield-lock"></i>
                         </div>
                     </div>
                     <div class="form-group position-relative has-icon-left mb-4">
-                        <input type="password" name="confirm_password" class="form-control" minlength="6" placeholder="Xác nhận mật khẩu mới" required>
+                        <input type="password" name="confirm_password" class="form-control" minlength="6" maxlength="255" placeholder="Xác nhận mật khẩu mới" required>
                         <div class="form-control-icon">
                             <i class="bi bi-shield-check"></i>
                         </div>

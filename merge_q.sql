@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th5 21, 2026 lúc 07:51 PM
+-- Thời gian đã tạo: Th5 22, 2026 lúc 08:02 AM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -30,34 +30,47 @@ SET time_zone = "+00:00";
 CREATE TABLE `allowances_penalties` (
   `id` int(11) NOT NULL,
   `teacher_id` int(11) NOT NULL,
-  `type` enum('bonus','penalty') NOT NULL,
+  `session_id` int(11) DEFAULT NULL,
+  `attendance_id` int(11) DEFAULT NULL,
+  `type` enum('reward','bonus','penalty') NOT NULL,
   `amount` decimal(12,2) NOT NULL,
   `reason` text DEFAULT NULL,
+  `status` enum('active','canceled') NOT NULL DEFAULT 'active',
+  `canceled_reason` text DEFAULT NULL,
   `month` int(11) NOT NULL,
   `year` int(11) NOT NULL,
   `created_by` int(11) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `canceled_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `canceled_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `allowances_penalties`
 --
 
-INSERT INTO `allowances_penalties` (`id`, `teacher_id`, `type`, `amount`, `reason`, `month`, `year`, `created_by`, `created_at`) VALUES
-(14, 1, 'penalty', 50000.00, 'Đi trễ 15 phút buổi học ngày 27/10/2025 — class Scratch', 10, 2025, 1, '2026-05-14 09:41:34'),
-(15, 1, 'penalty', 200000.00, 'Vắng không phép ngày 19/11/2025, không tìm được người thay', 11, 2025, 1, '2026-05-14 09:41:34'),
-(16, 1, 'penalty', 100000.00, 'Đi trễ 20 phút buổi ngày 28/10/2025 — class Scratch', 10, 2025, 1, '2026-05-14 09:41:34'),
-(17, 3, 'penalty', 50000.00, 'Đi trễ 10 phút buổi ngày 29/10/2025', 10, 2025, 1, '2026-05-14 09:41:34'),
-(18, 2, 'penalty', 999999999.00, 'csadfasdfas', 4, 2026, 1, '2026-05-14 09:41:34'),
-(19, 2, 'penalty', 50000.00, 'Đi trễ', 5, 2026, 1, '2026-05-14 09:41:34'),
-(20, 3, 'penalty', 200000.00, 'Vắng không báo trước', 5, 2026, 1, '2026-05-14 09:41:34'),
-(21, 1, 'penalty', 100000.00, 'Phạt đi trễ 31 phút (Tự động từ điểm danh)', 5, 2026, 1, '2026-05-14 09:41:34'),
-(22, 1, 'bonus', 500000.00, 'Thưởng Tết Nguyên Đán 2026 — theo chính sách trung tâm', 1, 2026, 1, '2026-05-14 09:41:34'),
-(23, 3, 'bonus', 500000.00, 'Thưởng Tết Nguyên Đán 2026 — theo chính sách trung tâm', 1, 2026, 1, '2026-05-14 09:41:34'),
-(24, 2, 'bonus', 2000000.00, 'Thưởng hiệu suất Q1/2026 — hoàn thành xuất sắc KPI', 4, 2026, 1, '2026-05-14 09:41:34'),
-(25, 1, 'bonus', 200000.00, 'Thưởng giảng viên mới hoàn thành tốt tháng đầu tiên', 4, 2026, 1, '2026-05-14 09:41:34'),
-(26, 2, 'penalty', 50000.00, '', 5, 2026, 1, '2026-05-17 07:25:57'),
-(27, 1, 'penalty', 100000.00, 'Phản ánh chất lượng', 5, 2026, 1, '2026-05-18 17:47:46');
+INSERT INTO `allowances_penalties` (`id`, `teacher_id`, `session_id`, `attendance_id`, `type`, `amount`, `reason`, `status`, `canceled_reason`, `month`, `year`, `created_by`, `canceled_by`, `created_at`, `updated_at`, `canceled_at`) VALUES
+(14, 1, NULL, NULL, 'penalty', 50000.00, 'Đi trễ 15 phút buổi học ngày 27/10/2025 — class Scratch', 'active', NULL, 10, 2025, 1, NULL, '2026-05-14 09:41:34', '2026-05-22 05:12:20', NULL),
+(15, 1, NULL, NULL, 'penalty', 200000.00, 'Vắng không phép ngày 19/11/2025, không tìm được người thay', 'active', NULL, 11, 2025, 1, NULL, '2026-05-14 09:41:34', '2026-05-22 05:12:20', NULL),
+(16, 1, NULL, NULL, 'penalty', 100000.00, 'Đi trễ 20 phút buổi ngày 28/10/2025 — class Scratch', 'active', NULL, 10, 2025, 1, NULL, '2026-05-14 09:41:34', '2026-05-22 05:12:20', NULL),
+(17, 3, NULL, NULL, 'penalty', 50000.00, 'Đi trễ 10 phút buổi ngày 29/10/2025', 'active', NULL, 10, 2025, 1, NULL, '2026-05-14 09:41:34', '2026-05-22 05:12:20', NULL),
+(18, 2, NULL, NULL, 'penalty', 999999999.00, 'csadfasdfas', 'active', NULL, 4, 2026, 1, NULL, '2026-05-14 09:41:34', '2026-05-22 05:12:20', NULL),
+(19, 2, NULL, NULL, 'penalty', 50000.00, 'Đi trễ', 'active', NULL, 5, 2026, 1, NULL, '2026-05-14 09:41:34', '2026-05-22 05:12:20', NULL),
+(20, 3, NULL, NULL, 'penalty', 200000.00, 'Vắng không báo trước', 'active', NULL, 5, 2026, 1, NULL, '2026-05-14 09:41:34', '2026-05-22 05:12:20', NULL),
+(21, 1, NULL, NULL, 'penalty', 100000.00, 'Phạt đi trễ 31 phút (Tự động từ điểm danh)', 'active', NULL, 5, 2026, 1, NULL, '2026-05-14 09:41:34', '2026-05-22 05:12:20', NULL),
+(22, 1, NULL, NULL, 'bonus', 500000.00, 'Thưởng Tết Nguyên Đán 2026 — theo chính sách trung tâm', 'active', NULL, 1, 2026, 1, NULL, '2026-05-14 09:41:34', '2026-05-22 05:12:20', NULL),
+(23, 3, NULL, NULL, 'bonus', 500000.00, 'Thưởng Tết Nguyên Đán 2026 — theo chính sách trung tâm', 'active', NULL, 1, 2026, 1, NULL, '2026-05-14 09:41:34', '2026-05-22 05:12:20', NULL),
+(24, 2, NULL, NULL, 'bonus', 2000000.00, 'Thưởng hiệu suất Q1/2026 — hoàn thành xuất sắc KPI', 'active', NULL, 4, 2026, 1, NULL, '2026-05-14 09:41:34', '2026-05-22 05:12:20', NULL),
+(25, 1, NULL, NULL, 'bonus', 200000.00, 'Thưởng giảng viên mới hoàn thành tốt tháng đầu tiên', 'active', NULL, 4, 2026, 1, NULL, '2026-05-14 09:41:34', '2026-05-22 05:12:20', NULL),
+(26, 2, NULL, NULL, 'penalty', 50000.00, '', 'active', NULL, 5, 2026, 1, NULL, '2026-05-17 07:25:57', '2026-05-22 05:12:20', NULL),
+(27, 1, NULL, NULL, 'penalty', 100000.00, 'Phản ánh chất lượng', 'active', NULL, 5, 2026, 1, NULL, '2026-05-18 17:47:46', '2026-05-22 05:12:20', NULL),
+(28, 1, 41, NULL, 'penalty', 100000.00, 'Giảng viên vắng mặt hoặc điểm danh sau 30 phút', 'active', NULL, 5, 2026, NULL, NULL, '2026-05-22 05:13:10', '2026-05-22 05:13:10', NULL),
+(29, 1, 1, NULL, 'penalty', 100000.00, 'Giảng viên vắng mặt hoặc điểm danh sau 30 phút', 'active', NULL, 5, 2026, NULL, NULL, '2026-05-22 05:13:10', '2026-05-22 05:13:10', NULL),
+(30, 1, 5, NULL, 'penalty', 100000.00, 'Giảng viên vắng mặt hoặc điểm danh sau 30 phút', 'active', NULL, 5, 2026, NULL, NULL, '2026-05-22 05:13:10', '2026-05-22 05:13:10', NULL),
+(31, 4, 49, NULL, 'penalty', 100000.00, 'Giảng viên vắng mặt hoặc điểm danh sau 30 phút', 'active', NULL, 5, 2026, NULL, NULL, '2026-05-22 05:13:10', '2026-05-22 05:13:10', NULL),
+(32, 1, 2, NULL, 'penalty', 100000.00, 'Giảng viên vắng mặt hoặc điểm danh sau 30 phút', 'active', NULL, 5, 2026, NULL, NULL, '2026-05-22 05:13:10', '2026-05-22 05:13:10', NULL),
+(33, 1, 3, NULL, 'penalty', 100000.00, 'Giảng viên vắng mặt hoặc điểm danh sau 30 phút', 'active', NULL, 5, 2026, NULL, NULL, '2026-05-22 05:13:10', '2026-05-22 05:13:10', NULL);
 
 -- --------------------------------------------------------
 
@@ -110,7 +123,20 @@ INSERT INTO `attendances` (`attendance_id`, `session_id`, `student_id`, `status`
 (30, 48, 2, 'present', '2026-05-17 19:25:45'),
 (31, 62, 2, 'present', '2026-05-17 19:28:42'),
 (32, 4, 2, 'present', '2026-05-17 19:34:03'),
-(33, 67, 2, 'present', '2026-05-17 19:46:24');
+(33, 67, 2, 'present', '2026-05-17 19:46:24'),
+(34, 51, 2, 'present', '2026-05-22 03:32:22'),
+(35, 43, 3, 'absent', '2026-05-22 05:13:10'),
+(36, 44, 3, 'absent', '2026-05-22 05:13:10'),
+(37, 48, 3, 'absent', '2026-05-22 05:13:10'),
+(38, 43, 4, 'absent', '2026-05-22 05:13:10'),
+(39, 44, 4, 'absent', '2026-05-22 05:13:10'),
+(40, 47, 2, 'absent', '2026-05-22 05:13:10'),
+(41, 47, 3, 'absent', '2026-05-22 05:13:10'),
+(42, 46, 2, 'absent', '2026-05-22 05:13:10'),
+(43, 42, 3, 'absent', '2026-05-22 05:13:10'),
+(44, 46, 3, 'absent', '2026-05-22 05:13:10'),
+(45, 42, 4, 'absent', '2026-05-22 05:13:10'),
+(46, 72, 6, 'present', '2026-05-22 05:23:56');
 
 -- --------------------------------------------------------
 
@@ -143,7 +169,8 @@ INSERT INTO `classes` (`class_id`, `course_id`, `package_id`, `schedule_id`, `sh
 (7, 6, NULL, 7, NULL, '2026-05-14', 10, NULL, 'PYT-003'),
 (8, 3, 3, 6, NULL, '2026-05-16', 10, NULL, 'ROBO-002'),
 (9, 4, 5, 9, NULL, '2026-05-18', 10, NULL, 'ROBO-001'),
-(10, 2, 6, 9, NULL, '2026-05-18', 10, NULL, 'SCR-001');
+(10, 2, 6, 9, NULL, '2026-05-18', 10, NULL, 'SCR-001'),
+(11, 5, 7, 8, NULL, '2026-05-22', 10, NULL, 'SCR-001');
 
 -- --------------------------------------------------------
 
@@ -213,10 +240,12 @@ INSERT INTO `enrollments` (`enrollment_id`, `student_id`, `class_id`, `enroll_da
 (11, 2, 1, '2026-05-15', 'studying', 3000000.00, 0, 3000000.00, 1000000.00, 'partial', 3, 19, NULL, '2026-05-15 10:22:18', NULL, NULL, NULL),
 (12, 3, 7, '2026-05-16', 'studying', NULL, 0, 0.00, 0.00, 'unpaid', 0, NULL, NULL, '2026-05-16 08:44:08', NULL, NULL, NULL),
 (13, 1, 7, '2026-05-17', 'studying', NULL, 0, 0.00, 0.00, 'unpaid', 0, NULL, NULL, '2026-05-17 07:41:20', NULL, NULL, NULL),
-(14, 2, 8, '2026-05-17', 'studying', 2000000.00, 0, 2000000.00, 2000000.00, 'paid', 3, 20, NULL, '2026-05-17 07:41:47', '15542763', 'VNPay', '2026-05-17 14:56:15'),
+(14, 2, 8, '2026-05-17', 'studying', 2000000.00, 0, 2000000.00, 2000000.00, 'paid', 4, 19, NULL, '2026-05-17 07:41:47', '15542763', 'VNPay', '2026-05-17 14:56:15'),
 (15, 2, 4, '2026-05-18', 'studying', 2000000.00, 0, 2000000.00, 0.00, 'unpaid', 0, 20, NULL, '2026-05-17 19:25:01', NULL, NULL, NULL),
 (16, 2, 9, '2026-05-18', 'studying', 5000000.00, 0, 5000000.00, 0.00, 'unpaid', 1, 19, NULL, '2026-05-17 19:28:19', NULL, NULL, NULL),
-(17, 2, 10, '2026-05-18', 'studying', 2000000.00, 0, 2000000.00, 0.00, 'unpaid', 1, 19, NULL, '2026-05-17 19:42:42', NULL, NULL, NULL);
+(17, 2, 10, '2026-05-18', 'studying', 2000000.00, 0, 2000000.00, 0.00, 'unpaid', 1, 19, NULL, '2026-05-17 19:42:42', NULL, NULL, NULL),
+(18, 6, 11, '2026-05-22', 'studying', 2000000.00, 0, 2000000.00, 2000000.00, 'paid', 1, 20, NULL, '2026-05-22 05:22:50', '15551147', 'VNPay', '2026-05-22 12:25:54'),
+(19, 7, 11, '2026-05-22', 'studying', 2000000.00, 0, 2000000.00, 2000000.00, 'paid', 0, 20, NULL, '2026-05-22 05:57:00', '15551168', 'VNPay', '2026-05-22 12:57:58');
 
 -- --------------------------------------------------------
 
@@ -258,6 +287,23 @@ CREATE TABLE `notifications` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Đang đổ dữ liệu cho bảng `notifications`
+--
+
+INSERT INTO `notifications` (`notification_id`, `user_id`, `type`, `title`, `message`, `reference_id`, `is_read`, `created_at`) VALUES
+(1, 7, 'session_teacher_absent_cancelled', 'Buổi học đã hủy', 'Buổi học của lớp Robotics cơ bản ROBO-001 ngày 09/05/2026 đã bị hủy do giảng viên vắng mặt. Trung tâm sẽ sắp xếp buổi học bù sau.', 41, 0, '2026-05-22 05:13:10'),
+(2, 6, 'session_teacher_absent_cancelled', 'Buổi học đã hủy', 'Buổi học của lớp Robotics cơ bản ROBO-001 ngày 09/05/2026 đã bị hủy do giảng viên vắng mặt. Trung tâm sẽ sắp xếp buổi học bù sau.', 41, 0, '2026-05-22 05:13:10'),
+(3, 6, 'session_teacher_absent_cancelled', 'Buổi học đã hủy', 'Buổi học của lớp Python cho người đi làm PYT-001 ngày 06/05/2026 đã bị hủy do giảng viên vắng mặt. Trung tâm sẽ sắp xếp buổi học bù sau.', 1, 0, '2026-05-22 05:13:10'),
+(4, 5, 'session_teacher_absent_cancelled', 'Buổi học đã hủy', 'Buổi học của lớp Python cho người đi làm PYT-001 ngày 06/05/2026 đã bị hủy do giảng viên vắng mặt. Trung tâm sẽ sắp xếp buổi học bù sau.', 1, 0, '2026-05-22 05:13:10'),
+(5, 6, 'session_teacher_absent_cancelled', 'Buổi học đã hủy', 'Buổi học của lớp Python cho người đi làm PYT-001 ngày 20/05/2026 đã bị hủy do giảng viên vắng mặt. Trung tâm sẽ sắp xếp buổi học bù sau.', 5, 0, '2026-05-22 05:13:10'),
+(6, 5, 'session_teacher_absent_cancelled', 'Buổi học đã hủy', 'Buổi học của lớp Python cho người đi làm PYT-001 ngày 20/05/2026 đã bị hủy do giảng viên vắng mặt. Trung tâm sẽ sắp xếp buổi học bù sau.', 5, 0, '2026-05-22 05:13:10'),
+(7, 5, 'session_teacher_absent_cancelled', 'Buổi học đã hủy', 'Buổi học của lớp Robotics cơ bản ROBO-002 ngày 16/05/2026 đã bị hủy do giảng viên vắng mặt. Trung tâm sẽ sắp xếp buổi học bù sau.', 49, 0, '2026-05-22 05:13:10'),
+(8, 6, 'session_teacher_absent_cancelled', 'Buổi học đã hủy', 'Buổi học của lớp Python cho người đi làm PYT-001 ngày 11/05/2026 đã bị hủy do giảng viên vắng mặt. Trung tâm sẽ sắp xếp buổi học bù sau.', 2, 0, '2026-05-22 05:13:10'),
+(9, 5, 'session_teacher_absent_cancelled', 'Buổi học đã hủy', 'Buổi học của lớp Python cho người đi làm PYT-001 ngày 11/05/2026 đã bị hủy do giảng viên vắng mặt. Trung tâm sẽ sắp xếp buổi học bù sau.', 2, 0, '2026-05-22 05:13:10'),
+(10, 6, 'session_teacher_absent_cancelled', 'Buổi học đã hủy', 'Buổi học của lớp Python cho người đi làm PYT-001 ngày 13/05/2026 đã bị hủy do giảng viên vắng mặt. Trung tâm sẽ sắp xếp buổi học bù sau.', 3, 0, '2026-05-22 05:13:10'),
+(11, 5, 'session_teacher_absent_cancelled', 'Buổi học đã hủy', 'Buổi học của lớp Python cho người đi làm PYT-001 ngày 13/05/2026 đã bị hủy do giảng viên vắng mặt. Trung tâm sẽ sắp xếp buổi học bù sau.', 3, 0, '2026-05-22 05:13:10');
+
 -- --------------------------------------------------------
 
 --
@@ -283,7 +329,8 @@ INSERT INTO `packages` (`package_id`, `course_id`, `name`, `total_sessions`, `pr
 (3, 3, 'Level 1 ', 20, 2000000.00, 'active'),
 (4, 6, 'Level   1', 20, 2000000.00, 'active'),
 (5, 4, 'Level 1', 20, 5000000.00, 'active'),
-(6, 2, 'Level 2 ', 20, 2000000.00, 'active');
+(6, 2, 'Level 2 ', 20, 2000000.00, 'active'),
+(7, 5, 'Level 1 ', 20, 2000000.00, 'active');
 
 -- --------------------------------------------------------
 
@@ -388,7 +435,7 @@ CREATE TABLE `salary_levels` (
 
 INSERT INTO `salary_levels` (`id`, `type`, `level`, `level_name`, `amount`, `requirement_sessions`, `is_active`, `effective_from`, `created_at`) VALUES
 (1, 'per_session', 1, 'bậc 1 - cơ bản', 50000.00, 0, 1, '0000-00-00', '2026-05-14 10:46:35'),
-(2, 'per_session', 2, 'bậc 2 - trung cấp', 100000.00, 30, 1, '0000-00-00', '2026-05-14 10:46:35'),
+(2, 'per_session', 2, 'bậc 2 - trung cấp', 100000.00, 20, 1, '0000-00-00', '2026-05-14 10:46:35'),
 (3, 'per_session', 3, 'bậc 3 - khá', 120000.00, 60, 1, '0000-00-00', '2026-05-14 10:46:35'),
 (4, 'per_session', 4, 'bậc 4 - thành thạo', 140000.00, 90, 1, '0000-00-00', '2026-05-14 10:46:35'),
 (5, 'per_session', 5, 'bậc 5 - già dặn', 160000.00, 120, 1, '0000-00-00', '2026-05-14 10:46:35'),
@@ -485,26 +532,26 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`session_id`, `class_id`, `session_date`, `shift_id`, `status`, `note`, `lesson_content`, `room_id`) VALUES
-(1, 1, '2026-05-06', 3, 'done', NULL, NULL, 10),
-(2, 1, '2026-05-11', 5, 'done', NULL, NULL, NULL),
-(3, 1, '2026-05-13', 5, 'done', NULL, NULL, NULL),
-(4, 1, '2026-05-18', 3, 'done', NULL, NULL, NULL),
-(5, 1, '2026-05-20', 3, 'done', NULL, NULL, NULL),
-(6, 1, '2026-05-25', 3, 'done', NULL, NULL, NULL),
-(7, 1, '2026-05-27', 3, 'done', NULL, NULL, NULL),
-(8, 1, '2026-06-01', 3, 'done', NULL, NULL, NULL),
-(9, 1, '2026-06-03', 3, 'done', NULL, NULL, NULL),
-(10, 1, '2026-06-08', 3, 'done', NULL, NULL, NULL),
-(11, 1, '2026-06-10', 3, 'done', NULL, NULL, NULL),
-(12, 1, '2026-06-15', 3, 'done', NULL, NULL, NULL),
-(13, 1, '2026-06-17', 3, 'done', NULL, NULL, NULL),
-(14, 1, '2026-06-22', 3, 'done', NULL, NULL, NULL),
-(15, 1, '2026-06-24', 3, 'done', NULL, NULL, NULL),
-(16, 1, '2026-06-29', 3, 'done', NULL, NULL, NULL),
-(17, 1, '2026-07-01', 3, 'done', NULL, NULL, NULL),
-(18, 1, '2026-07-06', 3, 'done', NULL, NULL, NULL),
-(19, 1, '2026-07-08', 3, 'done', NULL, NULL, NULL),
-(20, 1, '2026-07-13', 3, 'done', NULL, NULL, NULL),
+(1, 1, '2026-05-06', 3, 'cancelled', 'Giảng viên vắng mặt', NULL, 10),
+(2, 1, '2026-05-11', 5, 'cancelled', 'Giảng viên vắng mặt', NULL, 10),
+(3, 1, '2026-05-13', 5, 'cancelled', 'Giảng viên vắng mặt', NULL, 6),
+(4, 1, '2026-05-18', 3, 'done', NULL, NULL, 2),
+(5, 1, '2026-05-20', 3, 'cancelled', 'Giảng viên vắng mặt', NULL, 6),
+(6, 1, '2026-05-25', 3, 'done', NULL, NULL, 9),
+(7, 1, '2026-05-27', 3, 'done', NULL, NULL, 9),
+(8, 1, '2026-06-01', 3, 'done', NULL, NULL, 10),
+(9, 1, '2026-06-03', 3, 'done', NULL, NULL, 6),
+(10, 1, '2026-06-08', 3, 'done', NULL, NULL, 9),
+(11, 1, '2026-06-10', 3, 'done', NULL, NULL, 9),
+(12, 1, '2026-06-15', 3, 'done', NULL, NULL, 9),
+(13, 1, '2026-06-17', 3, 'done', NULL, NULL, 11),
+(14, 1, '2026-06-22', 3, 'done', NULL, NULL, 3),
+(15, 1, '2026-06-24', 3, 'done', NULL, NULL, 6),
+(16, 1, '2026-06-29', 3, 'done', NULL, NULL, 11),
+(17, 1, '2026-07-01', 3, 'done', NULL, NULL, 6),
+(18, 1, '2026-07-06', 3, 'done', NULL, NULL, 6),
+(19, 1, '2026-07-08', 3, 'done', NULL, NULL, 11),
+(20, 1, '2026-07-13', 3, 'done', NULL, NULL, 9),
 (21, 2, '2026-05-04', 3, 'scheduled', NULL, NULL, NULL),
 (22, 2, '2026-05-06', 3, 'scheduled', 'conflict', NULL, NULL),
 (23, 2, '2026-05-11', 3, 'scheduled', 'conflict', NULL, NULL),
@@ -525,7 +572,7 @@ INSERT INTO `sessions` (`session_id`, `class_id`, `session_date`, `shift_id`, `s
 (38, 2, '2026-07-01', 3, 'scheduled', 'conflict', NULL, NULL),
 (39, 2, '2026-07-06', 3, 'scheduled', 'conflict', NULL, NULL),
 (40, 2, '2026-07-08', 3, 'scheduled', 'conflict', NULL, NULL),
-(41, 3, '2026-05-09', 2, 'done', NULL, NULL, 10),
+(41, 3, '2026-05-09', 2, 'cancelled', 'Giảng viên vắng mặt', NULL, 10),
 (42, 3, '2026-05-11', 5, 'scheduled', NULL, NULL, NULL),
 (43, 3, '2026-05-16', 2, 'scheduled', NULL, NULL, NULL),
 (44, 3, '2026-05-18', 2, 'scheduled', NULL, NULL, 2),
@@ -533,9 +580,9 @@ INSERT INTO `sessions` (`session_id`, `class_id`, `session_date`, `shift_id`, `s
 (46, 5, '2026-05-11', 5, 'scheduled', NULL, NULL, 11),
 (47, 5, '2026-05-16', 3, 'scheduled', NULL, NULL, 11),
 (48, 5, '2026-05-18', 2, 'scheduled', NULL, NULL, 11),
-(49, 8, '2026-05-16', 3, 'done', NULL, NULL, 10),
+(49, 8, '2026-05-16', 3, 'cancelled', 'Giảng viên vắng mặt', NULL, 10),
 (50, 8, '2026-05-17', 5, 'done', NULL, NULL, 11),
-(51, 8, '2026-05-22', NULL, 'scheduled', NULL, NULL, NULL),
+(51, 8, '2026-05-22', 5, 'done', NULL, NULL, 9),
 (52, 8, '2026-05-23', NULL, 'scheduled', NULL, NULL, NULL),
 (53, 8, '2026-05-24', NULL, 'scheduled', NULL, NULL, NULL),
 (54, 8, '2026-05-29', NULL, 'scheduled', NULL, NULL, NULL),
@@ -554,7 +601,17 @@ INSERT INTO `sessions` (`session_id`, `class_id`, `session_date`, `shift_id`, `s
 (68, 10, '2026-05-23', NULL, 'scheduled', NULL, NULL, NULL),
 (69, 10, '2026-05-25', NULL, 'scheduled', NULL, NULL, NULL),
 (70, 10, '2026-05-30', NULL, 'scheduled', NULL, NULL, NULL),
-(71, 10, '2026-06-01', NULL, 'scheduled', NULL, NULL, NULL);
+(71, 10, '2026-06-01', NULL, 'scheduled', NULL, NULL, NULL),
+(72, 11, '2026-05-22', 2, 'done', NULL, NULL, 3),
+(73, 11, '2026-05-25', 2, 'scheduled', NULL, NULL, 3),
+(74, 11, '2026-05-29', 2, 'scheduled', NULL, NULL, 3),
+(75, 11, '2026-06-01', 2, 'scheduled', NULL, NULL, 3),
+(76, 11, '2026-06-05', 2, 'scheduled', NULL, NULL, 3),
+(77, 11, '2026-06-08', 2, 'scheduled', NULL, NULL, 3),
+(78, 11, '2026-06-12', 2, 'scheduled', NULL, NULL, 3),
+(79, 11, '2026-06-15', 2, 'scheduled', NULL, NULL, 3),
+(80, 11, '2026-06-19', 2, 'scheduled', NULL, NULL, 3),
+(81, 11, '2026-06-22', 2, 'scheduled', NULL, NULL, 3);
 
 -- --------------------------------------------------------
 
@@ -575,7 +632,8 @@ CREATE TABLE `session_reviews` (
 --
 
 INSERT INTO `session_reviews` (`review_id`, `session_id`, `student_id`, `review_text`, `created_at`) VALUES
-(1, 49, 0, 'Giỏi', '2026-05-17 14:45:29');
+(1, 49, 0, 'Giỏi', '2026-05-17 14:45:29'),
+(2, 72, 6, 'Tốt', '2026-05-22 12:24:08');
 
 -- --------------------------------------------------------
 
@@ -611,7 +669,32 @@ INSERT INTO `session_teachers` (`id`, `session_id`, `teacher_id`, `role`) VALUES
 (16, 70, 3, 'main'),
 (17, 71, 3, 'main'),
 (18, 67, 2, 'main'),
-(19, 68, 2, 'main');
+(19, 68, 2, 'main'),
+(20, 7, 1, 'main'),
+(21, 8, 1, 'main'),
+(22, 10, 1, 'main'),
+(23, 9, 1, 'main'),
+(24, 11, 1, 'main'),
+(25, 12, 1, 'main'),
+(26, 13, 1, 'main'),
+(27, 14, 1, 'main'),
+(28, 17, 1, 'main'),
+(29, 20, 1, 'main'),
+(30, 19, 1, 'main'),
+(31, 18, 1, 'main'),
+(32, 16, 1, 'main'),
+(33, 15, 1, 'main'),
+(34, 51, 2, 'main'),
+(35, 72, 5, 'main'),
+(36, 73, 5, 'main'),
+(37, 74, 5, 'main'),
+(38, 75, 5, 'main'),
+(39, 76, 5, 'main'),
+(40, 77, 5, 'main'),
+(41, 78, 5, 'main'),
+(42, 79, 5, 'main'),
+(43, 80, 5, 'main'),
+(44, 81, 5, 'main');
 
 -- --------------------------------------------------------
 
@@ -691,7 +774,9 @@ INSERT INTO `students` (`student_id`, `user_id`, `parent_name`, `parent_phone`, 
 (2, 5, 'Nguyễn Thị Tuyết', '0903445566', '2012-11-12', 1),
 (3, 6, '', NULL, '2004-02-05', 1),
 (4, 7, '', NULL, '2015-02-27', 1),
-(5, 9, 'Trần Trúc Trân', '', '2018-05-09', 1);
+(5, 9, 'Trần Trúc Trân', '', '2018-05-09', 1),
+(6, 13, 'Nguyễn Tú', '0123458897', '2018-02-22', 1),
+(7, 14, '', '', '2013-02-22', 1);
 
 -- --------------------------------------------------------
 
@@ -716,9 +801,10 @@ CREATE TABLE `teachers` (
 
 INSERT INTO `teachers` (`teacher_id`, `user_id`, `hire_date`, `salary_type`, `current_level_id`, `salary_value`, `status`, `specialization_id`) VALUES
 (1, 2, '2024-02-01', 'per_session', 1, 50000.00, 1, 3),
-(2, 3, '2024-03-15', 'fixed', 6, 8000000.00, 1, 2),
+(2, 3, '2024-03-15', 'per_session', 1, 50000.00, 1, 2),
 (3, 8, '2026-05-08', 'per_session', 1, 50000.00, 1, 2),
-(4, 10, '2026-03-01', 'per_session', 1, 50000.00, 1, 1);
+(4, 10, '2026-03-01', 'per_session', 1, 50000.00, 1, 1),
+(5, 12, '2026-05-22', 'per_session', 1, 50000.00, 1, 3);
 
 -- --------------------------------------------------------
 
@@ -734,9 +820,11 @@ CREATE TABLE `teacher_attendance` (
   `session_date` date DEFAULT NULL,
   `check_in_time` datetime DEFAULT NULL,
   `check_out_time` datetime DEFAULT NULL,
-  `status` enum('present','absent','late') DEFAULT 'present',
+  `status` enum('present','absent','late','late_absent') DEFAULT 'present',
   `method` tinyint(1) DEFAULT 1,
+  `confidence_score` decimal(6,4) DEFAULT NULL,
   `face_image` varchar(255) DEFAULT NULL,
+  `note` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -744,11 +832,18 @@ CREATE TABLE `teacher_attendance` (
 -- Đang đổ dữ liệu cho bảng `teacher_attendance`
 --
 
-INSERT INTO `teacher_attendance` (`attendance_id`, `teacher_id`, `session_id`, `class_id`, `session_date`, `check_in_time`, `check_out_time`, `status`, `method`, `face_image`, `created_at`) VALUES
-(1, 1, 4, 1, '2026-05-18', '2026-05-18 00:13:05', NULL, 'present', 1, NULL, '2026-05-17 17:13:05'),
-(2, 2, 44, 3, '2026-05-18', '2026-05-18 02:22:31', NULL, 'late', 1, 'attendance_1779106507_8539.jpg', '2026-05-17 19:22:31'),
-(3, 2, 62, 9, '2026-05-18', '2026-05-18 02:28:38', NULL, 'present', 1, 'attendance_1779046229_1854.jpg', '2026-05-17 19:28:38'),
-(4, 2, 67, 10, '2026-05-18', '2026-05-18 02:46:18', NULL, 'present', 1, 'attendance_1779047188_6238.jpg', '2026-05-17 19:46:18');
+INSERT INTO `teacher_attendance` (`attendance_id`, `teacher_id`, `session_id`, `class_id`, `session_date`, `check_in_time`, `check_out_time`, `status`, `method`, `confidence_score`, `face_image`, `note`, `created_at`) VALUES
+(1, 1, 4, 1, '2026-05-18', '2026-05-18 00:13:05', NULL, 'present', 1, NULL, NULL, NULL, '2026-05-17 17:13:05'),
+(2, 2, 44, 3, '2026-05-18', '2026-05-18 02:22:31', NULL, 'late', 1, NULL, 'attendance_1779106507_8539.jpg', NULL, '2026-05-17 19:22:31'),
+(3, 2, 62, 9, '2026-05-18', '2026-05-18 02:28:38', NULL, 'present', 1, NULL, 'attendance_1779046229_1854.jpg', NULL, '2026-05-17 19:28:38'),
+(4, 2, 67, 10, '2026-05-18', '2026-05-18 02:46:18', NULL, 'present', 1, NULL, 'attendance_1779047188_6238.jpg', NULL, '2026-05-17 19:46:18'),
+(5, 2, 51, 8, '2026-05-22', '2026-05-22 10:31:03', NULL, 'present', 1, NULL, 'attendance_1779422581_5125.jpg', NULL, '2026-05-22 03:31:03'),
+(6, 1, 41, 3, '2026-05-09', NULL, NULL, 'absent', 0, NULL, NULL, NULL, '2026-05-22 05:13:10'),
+(7, 1, 1, 1, '2026-05-06', NULL, NULL, 'absent', 0, NULL, NULL, NULL, '2026-05-22 05:13:10'),
+(8, 1, 5, 1, '2026-05-20', NULL, NULL, 'absent', 0, NULL, NULL, NULL, '2026-05-22 05:13:10'),
+(9, 4, 49, 8, '2026-05-16', NULL, NULL, 'absent', 0, NULL, NULL, NULL, '2026-05-22 05:13:10'),
+(10, 1, 2, 1, '2026-05-11', NULL, NULL, 'absent', 0, NULL, NULL, NULL, '2026-05-22 05:13:10'),
+(11, 1, 3, 1, '2026-05-13', NULL, NULL, 'absent', 0, NULL, NULL, NULL, '2026-05-22 05:13:10');
 
 -- --------------------------------------------------------
 
@@ -804,10 +899,71 @@ CREATE TABLE `teacher_salary_logs` (
 --
 
 INSERT INTO `teacher_salary_logs` (`id`, `teacher_id`, `month`, `year`, `level_id`, `total_sessions`, `late_sessions`, `absent_sessions`, `base_salary`, `total_bonus`, `total_penalty`, `final_salary`, `status`, `note`, `created_at`, `confirmed_at`, `confirmed_by`) VALUES
-(1, 2, 5, 2026, 6, 5, 1, 0, 8000000.00, 0.00, 100000.00, 7900000.00, 'draft', NULL, '2026-05-17 07:30:41', NULL, NULL),
-(2, 1, 5, 2026, 1, 7, 0, 0, 350000.00, 0.00, 200000.00, 150000.00, 'draft', NULL, '2026-05-17 07:30:41', NULL, NULL),
+(1, 2, 5, 2026, 1, 6, 1, 0, 300000.00, 0.00, 100000.00, 200000.00, 'draft', NULL, '2026-05-17 07:30:41', NULL, NULL),
+(2, 1, 5, 2026, 1, 1, 0, 5, 50000.00, 0.00, 700000.00, 0.00, 'draft', NULL, '2026-05-17 07:30:41', NULL, NULL),
 (3, 4, 5, 2026, 1, 1, 0, 0, 50000.00, 0.00, 0.00, 50000.00, 'draft', NULL, '2026-05-17 07:30:41', NULL, NULL),
-(4, 3, 5, 2026, 1, 0, 0, 0, 0.00, 0.00, 200000.00, 0.00, 'draft', NULL, '2026-05-17 07:30:41', NULL, NULL);
+(4, 3, 5, 2026, 1, 0, 0, 0, 0.00, 0.00, 200000.00, 0.00, 'draft', NULL, '2026-05-17 07:30:41', NULL, NULL),
+(5, 1, 6, 2026, 1, 0, 0, 0, 0.00, 0.00, 0.00, 0.00, 'draft', NULL, '2026-05-22 05:14:06', NULL, NULL),
+(6, 5, 5, 2026, 1, 0, 0, 0, 0.00, 0.00, 0.00, 0.00, 'draft', NULL, '2026-05-22 05:19:04', NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `teacher_specializations`
+--
+
+CREATE TABLE `teacher_specializations` (
+  `teacher_id` int(11) NOT NULL,
+  `specialization_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `teacher_specializations`
+--
+
+INSERT INTO `teacher_specializations` (`teacher_id`, `specialization_id`) VALUES
+(1, 3),
+(2, 1),
+(2, 2),
+(3, 2),
+(4, 1),
+(5, 1),
+(5, 2),
+(5, 3);
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `tuition_payments`
+--
+
+CREATE TABLE `tuition_payments` (
+  `payment_id` int(11) NOT NULL,
+  `enrollment_id` int(11) NOT NULL,
+  `amount` decimal(12,2) NOT NULL,
+  `payment_method` varchar(30) NOT NULL DEFAULT 'CASH',
+  `transaction_code` varchar(100) DEFAULT NULL,
+  `paid_at` datetime NOT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `tuition_payments`
+--
+
+INSERT INTO `tuition_payments` (`payment_id`, `enrollment_id`, `amount`, `payment_method`, `transaction_code`, `paid_at`, `created_by`, `created_at`) VALUES
+(1, 1, 3000000.00, 'CASH', 'LEGACY-1', '2026-05-07 12:52:59', NULL, '2026-05-22 12:52:59'),
+(2, 3, 2000000.00, 'CASH', 'LEGACY-3', '2026-05-08 12:52:59', NULL, '2026-05-22 12:52:59'),
+(3, 6, 2000000.00, 'CASH', 'LEGACY-6', '2026-05-22 12:52:59', NULL, '2026-05-22 12:52:59'),
+(4, 7, 2000000.00, 'CASH', 'LEGACY-7', '2026-05-22 12:52:59', NULL, '2026-05-22 12:52:59'),
+(5, 8, 2000000.00, 'CASH', 'LEGACY-8', '2026-05-22 12:52:59', NULL, '2026-05-22 12:52:59'),
+(6, 9, 2000000.00, 'CASH', 'LEGACY-9', '2026-05-12 12:52:59', NULL, '2026-05-22 12:52:59'),
+(7, 10, 2000000.00, 'CASH', 'LEGACY-10', '2026-05-22 12:52:59', NULL, '2026-05-22 12:52:59'),
+(8, 11, 1000000.00, 'CASH', 'LEGACY-11', '2026-05-22 12:52:59', NULL, '2026-05-22 12:52:59'),
+(9, 14, 2000000.00, 'CASH', 'LEGACY-14', '2026-05-10 12:52:59', NULL, '2026-05-22 12:52:59'),
+(10, 18, 2000000.00, 'CASH', 'LEGACY-18', '2026-05-17 12:52:59', NULL, '2026-05-22 12:52:59'),
+(16, 19, 2000000.00, 'VNPAY', '15551168', '2026-05-22 12:57:58', NULL, '2026-05-22 12:57:58');
 
 -- --------------------------------------------------------
 
@@ -823,6 +979,7 @@ CREATE TABLE `users` (
   `role` enum('admin','teacher','parent','student') DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `status` tinyint(4) DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -830,18 +987,21 @@ CREATE TABLE `users` (
 -- Đang đổ dữ liệu cho bảng `users`
 --
 
-INSERT INTO `users` (`user_id`, `name`, `email`, `password`, `role`, `phone`, `status`, `created_at`) VALUES
-(1, 'Nguyễn Minh Quân', 'quan.admin@center.com', '123456', 'admin', '0905123456', 1, '2026-05-04 20:03:35'),
-(2, 'Trần Thị Thu Thảo', 'thao.teacher@center.com', '123456', 'teacher', '0914223344', 1, '2026-05-04 20:03:35'),
-(3, 'Lê Hoàng Nam', 'nam.teacher@center.com', '123456', 'teacher', '0988556677', 1, '2026-05-04 20:03:35'),
-(4, 'Phạm Anh Tuấn', 'tuan.student@center.com', '123456', 'student', '0355889900', 1, '2026-05-04 20:03:35'),
-(5, 'Vũ Hải Yến', 'yen.student@center.com', '123456', 'student', '0700112233', 1, '2026-05-04 20:03:35'),
-(6, 'Mai Trí Thức ', NULL, NULL, NULL, '025647898', NULL, '2026-05-04 20:09:53'),
-(7, 'An Thuyên', NULL, NULL, NULL, '025698453', NULL, '2026-05-06 15:57:03'),
-(8, 'Vũ Văn Trung', 'trung.teacher@center.com', '123456', 'teacher', NULL, 1, '2026-05-08 14:30:48'),
-(9, 'Trần Thị Tú', 'tu.student@center.com', '123456', 'parent', '0225566998', 1, '2026-05-09 07:11:07'),
-(10, 'Việt Trung', 'trungtest.teacher@center.com', NULL, 'teacher', NULL, NULL, '2026-05-16 05:09:47'),
-(11, 'Vũ Văn Trung', 'trung.teacher@center.com', '123456', 'teacher', '', 1, '2026-05-17 19:37:45');
+INSERT INTO `users` (`user_id`, `name`, `email`, `password`, `role`, `phone`, `status`, `deleted_at`, `created_at`) VALUES
+(1, 'Nguyễn Minh Quân', 'quan.admin@center.com', '123456', 'admin', '0905123456', 1, NULL, '2026-05-04 20:03:35'),
+(2, 'Trần Thị Thu Thảo', 'thao.teacher@center.com', '123456', 'teacher', '0914223344', 1, NULL, '2026-05-04 20:03:35'),
+(3, 'Lê Hoàng Nam', 'nam.teacher@center.com', '123456', 'teacher', '0988556677', 1, NULL, '2026-05-04 20:03:35'),
+(4, 'Phạm Anh Tuấn', 'tuan.student@center.com', '123456', 'student', '0355889900', 1, NULL, '2026-05-04 20:03:35'),
+(5, 'Vũ Hải Yến', 'yen.student@center.com', '123456', 'student', '0700112233', 1, NULL, '2026-05-04 20:03:35'),
+(6, 'Mai Trí Thức', 'trithuc.student@center.com', '123456', 'student', '025647898', 1, NULL, '2026-05-04 20:09:53'),
+(7, 'An Thuyên', NULL, NULL, NULL, '025698453', 0, '2026-05-22 11:49:45', '2026-05-06 15:57:03'),
+(8, 'Vũ Văn Trung', 'trung.teacher@center.com', '123456', 'teacher', NULL, 1, NULL, '2026-05-08 14:30:48'),
+(9, 'Trần Thị Tú', 'tu.student@center.com', '123456', 'parent', '0225566998', 1, NULL, '2026-05-09 07:11:07'),
+(10, 'Việt Trung', 'trungtest.teacher@center.com', '123456', 'teacher', '', 1, NULL, '2026-05-16 05:09:47'),
+(11, 'Vũ Văn Trung', 'trung.teacher@center.com', '123456', 'teacher', '', 1, NULL, '2026-05-17 19:37:45'),
+(12, 'Trần Thị Tét ', 'test.teacher@center.com', '123456', 'teacher', NULL, 1, NULL, '2026-05-22 05:16:31'),
+(13, 'Nguyễn Văn Trần Tét Tơ ', 'tester.student@center.com', '123456', 'student', '0123456789', 1, NULL, '2026-05-22 05:17:53'),
+(14, 'Bành Văn Bá', 'ba.student@center.com', '123456', 'student', '025698745', 1, NULL, '2026-05-22 05:56:32');
 
 -- --------------------------------------------------------
 
@@ -944,7 +1104,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 ALTER TABLE `allowances_penalties`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_allowances_teacher` (`teacher_id`),
+  ADD UNIQUE KEY `uq_auto_teacher_session_reason` (`teacher_id`,`session_id`,`type`,`reason`(191)),
   ADD KEY `fk_allowances_created_by` (`created_by`);
 
 --
@@ -1106,6 +1266,7 @@ ALTER TABLE `teachers`
 --
 ALTER TABLE `teacher_attendance`
   ADD PRIMARY KEY (`attendance_id`),
+  ADD UNIQUE KEY `uq_teacher_attendance_teacher_session` (`teacher_id`,`session_id`),
   ADD KEY `fk_teacher_attendance_class` (`class_id`),
   ADD KEY `idx_teacher_attendance_teacher` (`teacher_id`),
   ADD KEY `idx_teacher_attendance_session` (`session_id`),
@@ -1130,6 +1291,21 @@ ALTER TABLE `teacher_salary_logs`
   ADD KEY `idx_teacher_salary_logs_month` (`teacher_id`,`month`,`year`);
 
 --
+-- Chỉ mục cho bảng `teacher_specializations`
+--
+ALTER TABLE `teacher_specializations`
+  ADD PRIMARY KEY (`teacher_id`,`specialization_id`);
+
+--
+-- Chỉ mục cho bảng `tuition_payments`
+--
+ALTER TABLE `tuition_payments`
+  ADD PRIMARY KEY (`payment_id`),
+  ADD UNIQUE KEY `uq_tuition_payments_transaction_code` (`transaction_code`),
+  ADD KEY `idx_tuition_payments_enrollment` (`enrollment_id`),
+  ADD KEY `idx_tuition_payments_paid_at` (`paid_at`);
+
+--
 -- Chỉ mục cho bảng `users`
 --
 ALTER TABLE `users`
@@ -1143,19 +1319,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT cho bảng `allowances_penalties`
 --
 ALTER TABLE `allowances_penalties`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT cho bảng `attendances`
 --
 ALTER TABLE `attendances`
-  MODIFY `attendance_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `attendance_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 
 --
 -- AUTO_INCREMENT cho bảng `classes`
 --
 ALTER TABLE `classes`
-  MODIFY `class_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `class_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT cho bảng `courses`
@@ -1167,7 +1343,7 @@ ALTER TABLE `courses`
 -- AUTO_INCREMENT cho bảng `enrollments`
 --
 ALTER TABLE `enrollments`
-  MODIFY `enrollment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `enrollment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT cho bảng `face_data`
@@ -1179,13 +1355,13 @@ ALTER TABLE `face_data`
 -- AUTO_INCREMENT cho bảng `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT cho bảng `packages`
 --
 ALTER TABLE `packages`
-  MODIFY `package_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `package_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT cho bảng `parents`
@@ -1233,19 +1409,19 @@ ALTER TABLE `schedule_days`
 -- AUTO_INCREMENT cho bảng `sessions`
 --
 ALTER TABLE `sessions`
-  MODIFY `session_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=72;
+  MODIFY `session_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
 
 --
 -- AUTO_INCREMENT cho bảng `session_reviews`
 --
 ALTER TABLE `session_reviews`
-  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT cho bảng `session_teachers`
 --
 ALTER TABLE `session_teachers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
 
 --
 -- AUTO_INCREMENT cho bảng `shifts`
@@ -1263,19 +1439,19 @@ ALTER TABLE `specializations`
 -- AUTO_INCREMENT cho bảng `students`
 --
 ALTER TABLE `students`
-  MODIFY `student_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `student_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT cho bảng `teachers`
 --
 ALTER TABLE `teachers`
-  MODIFY `teacher_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `teacher_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT cho bảng `teacher_attendance`
 --
 ALTER TABLE `teacher_attendance`
-  MODIFY `attendance_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `attendance_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT cho bảng `teacher_level_history`
@@ -1287,13 +1463,19 @@ ALTER TABLE `teacher_level_history`
 -- AUTO_INCREMENT cho bảng `teacher_salary_logs`
 --
 ALTER TABLE `teacher_salary_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT cho bảng `tuition_payments`
+--
+ALTER TABLE `tuition_payments`
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT cho bảng `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- Các ràng buộc cho các bảng đã đổ

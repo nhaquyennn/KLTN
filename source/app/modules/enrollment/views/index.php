@@ -98,7 +98,7 @@
                     <input type="hidden" name="action" value="index">
 
                     <div class="col-md-4">
-                        <input type="text" name="keyword" class="form-control"
+                        <input type="text" name="keyword" class="form-control" maxlength="100"
                             placeholder="Tìm theo tên học viên"
                             value="<?= htmlspecialchars($filters['keyword'] ?? '') ?>">
                     </div>
@@ -123,7 +123,7 @@
 
                     <div class="col-md-4">
                         <button class="btn btn-primary">Lọc</button>
-                        <a href="?module=enrollment&action=index" class="btn btn-secondary">Reset</a>
+                        <a href="?module=enrollment&action=index" class="btn btn-secondary">Đặt lại</a>
                     </div>
                 </form>
 
@@ -411,7 +411,7 @@
                             Số tiền thanh toán
                         </label>
 
-                        <input type="number" name="amount" id="amountInput" class="form-control" min="1000" required>
+                        <input type="number" name="amount" id="amountInput" class="form-control" min="1000" max="1000000000" step="1000" required>
 
                         <small class="text-muted">
                             Không được vượt quá số tiền còn lại

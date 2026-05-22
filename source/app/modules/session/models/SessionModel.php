@@ -7,6 +7,7 @@ class SessionModel
     {
         $this->db = (new Database())->connect();
         $this->ensureReviewTable();
+        $this->ensureTeacherSpecializationsTable();
     }
 
     public function getByClass($class_id, $teacher_id = null)
@@ -157,6 +158,36 @@ class SessionModel
             ->execute([$room_id, $session_id]);
     }
 
+    public function assignRoomToSessions($sessionIds, $roomId)
+    {
+        $sessionIds = $this->normalizeIds($sessionIds);
+        $roomId = (int) $roomId;
+        $updated = 0;
+        $skipped = 0;
+
+        if (empty($sessionIds) || !$roomId) {
+            return ['updated' => 0, 'skipped' => count($sessionIds)];
+        }
+
+        $stmt = $this->db->prepare("
+            UPDATE sessions
+            SET room_id = ?
+            WHERE session_id = ?
+        ");
+
+        foreach ($sessionIds as $sessionId) {
+            if (!$this->isSessionAssignable($sessionId) || $this->isRoomBusy($roomId, $sessionId)) {
+                $skipped++;
+                continue;
+            }
+
+            $stmt->execute([$roomId, $sessionId]);
+            $updated++;
+        }
+
+        return ['updated' => $updated, 'skipped' => $skipped];
+    }
+
     public function updateShift($session_id, $shift_id)
     {
         $this->db->prepare("
@@ -164,6 +195,34 @@ class SessionModel
             SET shift_id = ?, status = 'scheduled', note = NULL
             WHERE session_id = ?
         ")->execute([$shift_id, $session_id]);
+    }
+
+    public function assignShiftToSessions($sessionIds, $shiftId)
+    {
+        $sessionIds = $this->normalizeIds($sessionIds);
+        $shiftId = (int) $shiftId;
+        $updated = 0;
+        $skipped = 0;
+
+        if (empty($sessionIds) || !$shiftId) {
+            return ['updated' => 0, 'skipped' => count($sessionIds)];
+        }
+
+        foreach ($sessionIds as $sessionId) {
+            if (
+                !$this->isSessionAssignable($sessionId)
+                || $this->willShiftConflictWithRoom($sessionId, $shiftId)
+                || $this->willShiftConflictWithAssignedTeachers($sessionId, $shiftId)
+            ) {
+                $skipped++;
+                continue;
+            }
+
+            $this->updateShift($sessionId, $shiftId);
+            $updated++;
+        }
+
+        return ['updated' => $updated, 'skipped' => $skipped];
     }
 
     public function updateStatus($session_id, $status)
@@ -285,6 +344,7 @@ class SessionModel
             SELECT 
                 t.teacher_id,
                 u.name,
+                COALESCE(GROUP_CONCAT(DISTINCT sp_all.name ORDER BY sp_all.name SEPARATOR ', '), '') AS specialization_names,
 
                 CASE 
                     WHEN EXISTS (
@@ -316,43 +376,43 @@ class SessionModel
                         )
                     )
                     THEN 1 ELSE 0
-                END AS is_busy
+                END AS is_busy,
+
+                CASE
+                    WHEN EXISTS (
+                        SELECT 1
+                        FROM sessions s_match
+                        JOIN classes c_match ON c_match.class_id = s_match.class_id
+                        JOIN courses co_match ON co_match.course_id = c_match.course_id
+                        JOIN specializations sp_match ON sp_match.status = 'active'
+                        LEFT JOIN teacher_specializations ts_match
+                            ON ts_match.specialization_id = sp_match.specialization_id
+                            AND ts_match.teacher_id = t.teacher_id
+                        WHERE s_match.session_id = ?
+                        AND (
+                            co_match.name LIKE CONCAT('%', sp_match.name, '%')
+                            OR sp_match.name LIKE CONCAT('%', co_match.name, '%')
+                        )
+                        AND (
+                            ts_match.teacher_id IS NOT NULL
+                            OR t.specialization_id = sp_match.specialization_id
+                        )
+                    )
+                    THEN 1 ELSE 0
+                END AS is_recommended
 
             FROM teachers t
             JOIN users u ON t.user_id = u.user_id
+            LEFT JOIN teacher_specializations ts_all
+                ON ts_all.teacher_id = t.teacher_id
+            LEFT JOIN specializations sp_all
+                ON sp_all.specialization_id = ts_all.specialization_id
             WHERE t.status = 1
-            AND (
-                NOT EXISTS (
-                    SELECT 1
-                    FROM sessions s
-                    JOIN classes c ON c.class_id = s.class_id
-                    JOIN courses co ON co.course_id = c.course_id
-                    JOIN specializations sp ON sp.status = 'active'
-                    WHERE s.session_id = ?
-                    AND (
-                        co.name LIKE CONCAT('%', sp.name, '%')
-                        OR sp.name LIKE CONCAT('%', co.name, '%')
-                    )
-                )
-                OR EXISTS (
-                    SELECT 1
-                    FROM sessions s
-                    JOIN classes c ON c.class_id = s.class_id
-                    JOIN courses co ON co.course_id = c.course_id
-                    JOIN specializations sp ON sp.specialization_id = t.specialization_id
-                    WHERE s.session_id = ?
-                    AND sp.status = 'active'
-                    AND (
-                        co.name LIKE CONCAT('%', sp.name, '%')
-                        OR sp.name LIKE CONCAT('%', co.name, '%')
-                    )
-                )
-            )
-            ORDER BY u.name ASC
+            GROUP BY t.teacher_id
+            ORDER BY is_recommended DESC, u.name ASC
         ");
 
         $stmt->execute([
-            $session_id,
             $session_id,
             $session_id,
             $session_id,
@@ -429,6 +489,52 @@ class SessionModel
         ]);
 
         return $stmt->fetch() ? true : false;
+    }
+
+    private function willShiftConflictWithRoom($sessionId, $shiftId)
+    {
+        $stmt = $this->db->prepare("
+            SELECT 1
+            FROM sessions target
+            JOIN sessions other
+                ON other.room_id = target.room_id
+                AND other.session_date = target.session_date
+                AND other.session_id <> target.session_id
+                AND other.status <> 'cancelled'
+            JOIN shifts other_shift ON other_shift.shift_id = other.shift_id
+            JOIN shifts target_shift ON target_shift.shift_id = ?
+            WHERE target.session_id = ?
+            AND target.room_id IS NOT NULL
+            AND other_shift.start_time < target_shift.end_time
+            AND other_shift.end_time > target_shift.start_time
+            LIMIT 1
+        ");
+        $stmt->execute([(int) $shiftId, (int) $sessionId]);
+        return (bool) $stmt->fetchColumn();
+    }
+
+    private function willShiftConflictWithAssignedTeachers($sessionId, $shiftId)
+    {
+        $stmt = $this->db->prepare("
+            SELECT 1
+            FROM session_teachers target_teacher
+            JOIN sessions target ON target.session_id = target_teacher.session_id
+            JOIN session_teachers other_teacher
+                ON other_teacher.teacher_id = target_teacher.teacher_id
+                AND other_teacher.session_id <> target_teacher.session_id
+            JOIN sessions other
+                ON other.session_id = other_teacher.session_id
+                AND other.session_date = target.session_date
+                AND other.status <> 'cancelled'
+            JOIN shifts other_shift ON other_shift.shift_id = other.shift_id
+            JOIN shifts target_shift ON target_shift.shift_id = ?
+            WHERE target.session_id = ?
+            AND other_shift.start_time < target_shift.end_time
+            AND other_shift.end_time > target_shift.start_time
+            LIMIT 1
+        ");
+        $stmt->execute([(int) $shiftId, (int) $sessionId]);
+        return (bool) $stmt->fetchColumn();
     }
 
     public function getRoomsWithStatus($session_id)
@@ -665,5 +771,148 @@ class SessionModel
         if (!$hasSessionStudentUnique) {
             $this->db->exec("ALTER TABLE session_reviews ADD UNIQUE KEY uq_session_reviews_session_student (session_id, student_id)");
         }
+    }
+
+    private function ensureTeacherSpecializationsTable()
+    {
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS teacher_specializations (
+                teacher_id INT NOT NULL,
+                specialization_id INT NOT NULL,
+                PRIMARY KEY (teacher_id, specialization_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        ");
+
+        $this->db->exec("
+            INSERT IGNORE INTO teacher_specializations (teacher_id, specialization_id)
+            SELECT teacher_id, specialization_id
+            FROM teachers
+            WHERE specialization_id IS NOT NULL
+            AND specialization_id <> 0
+        ");
+    }
+
+    public function assignTeachersToSessions($sessionIds, $main, $assistants)
+    {
+        $sessionIds = $this->normalizeIds($sessionIds);
+        $main = $main ? (int) $main : null;
+        $assistants = $this->normalizeIds($assistants);
+        $updated = 0;
+        $skipped = 0;
+
+        if (empty($sessionIds) || (!$main && empty($assistants))) {
+            return ['updated' => 0, 'skipped' => count($sessionIds)];
+        }
+
+        foreach ($sessionIds as $sessionId) {
+            if (!$this->isSessionAssignable($sessionId)) {
+                $skipped++;
+                continue;
+            }
+
+            $hasConflict = false;
+            $mainForSession = $main ?: $this->getMainTeacherId($sessionId);
+
+            if ($main && $this->isTeacherBusy($main, $sessionId)) {
+                $hasConflict = true;
+            }
+
+            foreach ($assistants as $assistantId) {
+                if ($assistantId === $main) {
+                    continue;
+                }
+
+                if ($this->isTeacherBusy($assistantId, $sessionId)) {
+                    $hasConflict = true;
+                    break;
+                }
+            }
+
+            if ($hasConflict) {
+                $skipped++;
+                continue;
+            }
+
+            $this->saveTeachersWithoutRedirect($sessionId, $mainForSession, $assistants);
+            $updated++;
+        }
+
+        return ['updated' => $updated, 'skipped' => $skipped];
+    }
+
+    private function saveTeachersWithoutRedirect($sessionId, $main, $assistants)
+    {
+        $this->db->prepare("DELETE FROM session_teachers WHERE session_id = ?")
+            ->execute([(int) $sessionId]);
+
+        if ($main) {
+            $this->db->prepare("
+                INSERT INTO session_teachers (session_id, teacher_id, role)
+                VALUES (?, ?, 'main')
+            ")->execute([(int) $sessionId, (int) $main]);
+        }
+
+        if ($assistants) {
+            $stmt = $this->db->prepare("
+                INSERT INTO session_teachers (session_id, teacher_id, role)
+                VALUES (?, ?, 'assistant')
+            ");
+
+            foreach ($assistants as $teacherId) {
+                if ($teacherId === $main) {
+                    continue;
+                }
+
+                $stmt->execute([(int) $sessionId, (int) $teacherId]);
+            }
+        }
+    }
+
+    private function isSessionAssignable($sessionId)
+    {
+        $stmt = $this->db->prepare("
+            SELECT status
+            FROM sessions
+            WHERE session_id = ?
+            LIMIT 1
+        ");
+        $stmt->execute([(int) $sessionId]);
+        $status = $stmt->fetchColumn();
+
+        return $status && !in_array($status, ['done', 'cancelled'], true);
+    }
+
+    private function getMainTeacherId($sessionId)
+    {
+        $stmt = $this->db->prepare("
+            SELECT teacher_id
+            FROM session_teachers
+            WHERE session_id = ?
+            AND role = 'main'
+            LIMIT 1
+        ");
+        $stmt->execute([(int) $sessionId]);
+        $teacherId = $stmt->fetchColumn();
+
+        return $teacherId ? (int) $teacherId : null;
+    }
+
+    private function normalizeIds($ids)
+    {
+        if (!is_array($ids)) {
+            $ids = [$ids];
+        }
+
+        $normalized = [];
+
+        foreach ($ids as $id) {
+            $id = (int) $id;
+
+            if ($id > 0) {
+                $normalized[$id] = $id;
+            }
+        }
+
+        return array_values($normalized);
     }
 }

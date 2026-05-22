@@ -6,8 +6,10 @@ class SalaryModel
 
     public function __construct()
     {
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
         $database = new Database();
         $this->db = $database->connect();
+        $this->ensureAdjustmentHistorySchema();
     }
 
     public function getSalaryLevels()
@@ -30,6 +32,8 @@ class SalaryModel
 
     public function updateSalaryLevel($data)
     {
+        $amount = $this->normalizeMoney($data['amount'] ?? 0);
+
         $sql = "
             UPDATE salary_levels
             SET
@@ -41,12 +45,93 @@ class SalaryModel
 
         $stmt = $this->db->prepare($sql);
 
-        return $stmt->execute([
+        $ok = $stmt->execute([
             'level_name' => trim($data['level_name'] ?? ''),
             'requirement_sessions' => (int) ($data['requirement_sessions'] ?? 0),
-            'amount' => $this->normalizeMoney($data['amount'] ?? 0),
+            'amount' => $amount,
             'id' => (int) ($data['id'] ?? 0)
         ]);
+
+        if ($ok) {
+            $syncStmt = $this->db->prepare("
+                UPDATE teachers
+                SET salary_value = ?
+                WHERE current_level_id = ?
+            ");
+            $syncStmt->execute([
+                $amount,
+                (int) ($data['id'] ?? 0)
+            ]);
+        }
+
+        return $ok;
+    }
+
+    public function autoPromoteTeacherLevels($type = 'per_session')
+    {
+        $type = $type === 'monthly' ? 'monthly' : 'per_session';
+        $salaryType = $type === 'monthly' ? 'fixed' : 'per_session';
+
+        $stmt = $this->db->prepare("
+            SELECT
+                t.teacher_id,
+                t.current_level_id,
+                t.salary_value,
+                current_level.level AS current_level,
+                current_level.type AS current_level_type
+            FROM teachers t
+            LEFT JOIN salary_levels current_level ON current_level.id = t.current_level_id
+            WHERE t.status = 1
+            AND t.salary_type = ?
+        ");
+        $stmt->execute([$salaryType]);
+        $teachers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $update = $this->db->prepare("
+            UPDATE teachers
+            SET current_level_id = ?, salary_value = ?
+            WHERE teacher_id = ?
+        ");
+
+        $checked = 0;
+        $promoted = 0;
+        $skipped = 0;
+
+        foreach ($teachers as $teacher) {
+            $checked++;
+
+            $totalSessions = $this->countTeachingSessionsUntilNow((int) $teacher['teacher_id']);
+            $targetLevel = $this->findLevelForSessions($type, $totalSessions);
+
+            if (!$targetLevel) {
+                $skipped++;
+                continue;
+            }
+
+            $currentLevel = ($teacher['current_level_type'] ?? '') === $type
+                ? (int) ($teacher['current_level'] ?? 0)
+                : 0;
+            $targetLevelNumber = (int) ($targetLevel['level'] ?? 0);
+
+            if ($targetLevelNumber <= $currentLevel && !empty($teacher['current_level_id'])) {
+                $skipped++;
+                continue;
+            }
+
+            $update->execute([
+                (int) $targetLevel['id'],
+                (float) $targetLevel['amount'],
+                (int) $teacher['teacher_id']
+            ]);
+
+            $promoted++;
+        }
+
+        return [
+            'checked' => $checked,
+            'promoted' => $promoted,
+            'skipped' => $skipped
+        ];
     }
 
     public function calculateAllSalaries($month, $year)
@@ -323,7 +408,7 @@ class SalaryModel
 
     public function addBonus($data)
     {
-        $data['type'] = 'bonus';
+        $data['type'] = 'reward';
         return $this->saveAdjustment($data);
     }
 
@@ -333,27 +418,88 @@ class SalaryModel
         return $this->saveAdjustment($data);
     }
 
-    public function deletePenaltyById($id)
+    public function cancelAdjustment($id, $reason, $userId)
     {
+        $adjustment = $this->getAdjustmentById($id);
+
+        if (!$adjustment || ($adjustment['status'] ?? 'active') === 'canceled') {
+            return false;
+        }
+
         $stmt = $this->db->prepare("
-            DELETE FROM allowances_penalties
+            UPDATE allowances_penalties
+            SET status = 'canceled',
+                canceled_reason = ?,
+                canceled_by = ?,
+                canceled_at = NOW()
             WHERE id = ?
         ");
 
-        return $stmt->execute([(int) $id]);
+        return $stmt->execute([
+            trim((string) $reason),
+            (int) $userId ?: null,
+            (int) $id
+        ]);
+    }
+
+    public function updateAdjustment($id, $data)
+    {
+        $adjustment = $this->getAdjustmentById($id);
+
+        if (!$adjustment || ($adjustment['status'] ?? 'active') === 'canceled') {
+            return false;
+        }
+
+        $type = ($data['type'] ?? $adjustment['type']) === 'penalty' ? 'penalty' : 'reward';
+        $stmt = $this->db->prepare("
+            UPDATE allowances_penalties
+            SET teacher_id = ?,
+                session_id = ?,
+                type = ?,
+                amount = ?,
+                reason = ?,
+                month = ?,
+                year = ?
+            WHERE id = ?
+            AND status = 'active'
+        ");
+
+        return $stmt->execute([
+            (int) ($data['teacher_id'] ?? $adjustment['teacher_id']),
+            !empty($data['session_id']) ? (int) $data['session_id'] : null,
+            $type,
+            $this->normalizeMoney($data['amount'] ?? $adjustment['amount']),
+            trim($data['reason'] ?? $adjustment['reason']),
+            (int) ($data['month'] ?? $adjustment['month']),
+            (int) ($data['year'] ?? $adjustment['year']),
+            (int) $id
+        ]);
+    }
+
+    public function getAdjustmentById($id)
+    {
+        $stmt = $this->db->prepare("
+            SELECT *
+            FROM allowances_penalties
+            WHERE id = ?
+            LIMIT 1
+        ");
+        $stmt->execute([(int) $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     public function getStats($month, $year)
     {
         $sql = "
             SELECT
-                COALESCE(SUM(CASE WHEN type='bonus' THEN amount ELSE 0 END), 0) AS total_bonus,
+                COALESCE(SUM(CASE WHEN type IN ('reward', 'bonus') THEN amount ELSE 0 END), 0) AS total_bonus,
                 COALESCE(SUM(CASE WHEN type='penalty' THEN amount ELSE 0 END), 0) AS total_penalty,
-                COUNT(CASE WHEN type='bonus' THEN 1 END) AS bonus_count,
+                COUNT(CASE WHEN type IN ('reward', 'bonus') THEN 1 END) AS bonus_count,
                 COUNT(CASE WHEN type='penalty' THEN 1 END) AS penalty_count
             FROM allowances_penalties
             WHERE month = ?
             AND year = ?
+            AND status = 'active'
         ";
 
         $stmt = $this->db->prepare($sql);
@@ -362,8 +508,15 @@ class SalaryModel
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function getHistory($month, $year)
+    public function getHistory($month, $year, $filters = [])
     {
+        $filters = array_merge([
+            'teacher_id' => null,
+            'kind' => 'all',
+            'from_date' => null,
+            'to_date' => null,
+        ], $filters);
+
         $sql = "
             SELECT 
                 ap.*,
@@ -373,11 +526,40 @@ class SalaryModel
             JOIN users u ON u.user_id = t.user_id
             WHERE ap.month = ?
             AND ap.year = ?
-            ORDER BY ap.created_at DESC
         ";
+        $params = [(int) $month, (int) $year];
+
+        if (!empty($filters['teacher_id'])) {
+            $sql .= " AND ap.teacher_id = ?";
+            $params[] = (int) $filters['teacher_id'];
+        }
+
+        $kindMap = [
+            'reward' => "ap.type IN ('reward', 'bonus') AND ap.status = 'active'",
+            'penalty' => "ap.type = 'penalty' AND ap.status = 'active'",
+            'canceled_reward' => "ap.type IN ('reward', 'bonus') AND ap.status = 'canceled'",
+            'canceled_penalty' => "ap.type = 'penalty' AND ap.status = 'canceled'",
+            'canceled' => "ap.status = 'canceled'",
+        ];
+
+        if (isset($kindMap[$filters['kind']])) {
+            $sql .= ' AND ' . $kindMap[$filters['kind']];
+        }
+
+        if (!empty($filters['from_date'])) {
+            $sql .= " AND DATE(ap.created_at) >= ?";
+            $params[] = $filters['from_date'];
+        }
+
+        if (!empty($filters['to_date'])) {
+            $sql .= " AND DATE(ap.created_at) <= ?";
+            $params[] = $filters['to_date'];
+        }
+
+        $sql .= " ORDER BY ap.created_at DESC";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([(int) $month, (int) $year]);
+        $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -415,18 +597,21 @@ class SalaryModel
                 month,
                 year,
                 created_by
+                , session_id,
+                status
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
         ");
 
         return $stmt->execute([
             (int) $data['teacher_id'],
-            $data['type'] === 'penalty' ? 'penalty' : 'bonus',
+            $data['type'] === 'penalty' ? 'penalty' : 'reward',
             $this->normalizeMoney($data['amount'] ?? 0),
             trim($data['reason'] ?? ''),
             (int) ($data['month'] ?? date('m')),
             (int) ($data['year'] ?? date('Y')),
-            (int) ($_SESSION['user']['id'] ?? 1)
+            (int) ($_SESSION['user']['id'] ?? 1),
+            !empty($data['session_id']) ? (int) $data['session_id'] : null
         ]);
     }
 
@@ -444,13 +629,36 @@ class SalaryModel
             SELECT COUNT(DISTINCT s.session_id)
             FROM sessions s
             JOIN session_teachers st ON st.session_id = s.session_id
+            JOIN teacher_attendance ta
+                ON ta.session_id = s.session_id
+                AND ta.teacher_id = st.teacher_id
+                AND ta.status IN ('present', 'late')
             WHERE $where
             AND st.teacher_id = ?
-            AND (s.status = 'done' OR s.session_date <= CURDATE())
+            AND s.status <> 'cancelled'
         ";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    private function countTeachingSessionsUntilNow($teacherId)
+    {
+        $stmt = $this->db->prepare("
+            SELECT COUNT(DISTINCT s.session_id)
+            FROM sessions s
+            JOIN session_teachers st ON st.session_id = s.session_id
+            JOIN teacher_attendance ta
+                ON ta.session_id = s.session_id
+                AND ta.teacher_id = st.teacher_id
+                AND ta.status IN ('present', 'late')
+            WHERE st.teacher_id = ?
+            AND s.status <> 'cancelled'
+        ");
+
+        $stmt->execute([(int) $teacherId]);
 
         return (int) $stmt->fetchColumn();
     }
@@ -491,12 +699,13 @@ class SalaryModel
     {
         $stmt = $this->db->prepare("
             SELECT
-                COALESCE(SUM(CASE WHEN type = 'bonus' THEN amount ELSE 0 END), 0) AS bonus,
+                COALESCE(SUM(CASE WHEN type IN ('reward', 'bonus') THEN amount ELSE 0 END), 0) AS bonus,
                 COALESCE(SUM(CASE WHEN type = 'penalty' THEN amount ELSE 0 END), 0) AS penalty
             FROM allowances_penalties
             WHERE teacher_id = ?
             AND month = ?
             AND year = ?
+            AND status = 'active'
         ");
 
         $stmt->execute([(int) $teacherId, (int) $month, (int) $year]);
@@ -513,7 +722,7 @@ class SalaryModel
         $stmt = $this->db->prepare("
             SELECT
                 COUNT(CASE WHEN status = 'late' THEN 1 END) AS late,
-                COUNT(CASE WHEN status = 'absent' THEN 1 END) AS absent
+                COUNT(CASE WHEN status IN ('absent', 'late_absent') THEN 1 END) AS absent
             FROM teacher_attendance
             WHERE teacher_id = ?
             AND MONTH(session_date) = ?
@@ -545,5 +754,39 @@ class SalaryModel
     private function normalizeMoney($value)
     {
         return (float) preg_replace('/[^0-9.]/', '', (string) $value);
+    }
+
+    private function ensureAdjustmentHistorySchema()
+    {
+        $columns = $this->db->query("SHOW COLUMNS FROM allowances_penalties")->fetchAll(PDO::FETCH_COLUMN);
+        $typeColumn = $this->db->query("SHOW COLUMNS FROM allowances_penalties LIKE 'type'")->fetch(PDO::FETCH_ASSOC);
+
+        if (strpos((string) ($typeColumn['Type'] ?? ''), "'reward'") === false) {
+            $this->db->exec("ALTER TABLE allowances_penalties MODIFY type ENUM('reward', 'bonus', 'penalty') NOT NULL");
+        }
+
+        if (!in_array('session_id', $columns, true)) {
+            $this->db->exec("ALTER TABLE allowances_penalties ADD session_id INT NULL AFTER teacher_id");
+        }
+
+        if (!in_array('status', $columns, true)) {
+            $this->db->exec("ALTER TABLE allowances_penalties ADD status ENUM('active', 'canceled') NOT NULL DEFAULT 'active' AFTER reason");
+        }
+
+        if (!in_array('canceled_reason', $columns, true)) {
+            $this->db->exec("ALTER TABLE allowances_penalties ADD canceled_reason TEXT NULL AFTER status");
+        }
+
+        if (!in_array('canceled_by', $columns, true)) {
+            $this->db->exec("ALTER TABLE allowances_penalties ADD canceled_by INT NULL AFTER created_by");
+        }
+
+        if (!in_array('updated_at', $columns, true)) {
+            $this->db->exec("ALTER TABLE allowances_penalties ADD updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at");
+        }
+
+        if (!in_array('canceled_at', $columns, true)) {
+            $this->db->exec("ALTER TABLE allowances_penalties ADD canceled_at DATETIME NULL AFTER updated_at");
+        }
     }
 }

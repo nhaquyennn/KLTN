@@ -91,7 +91,7 @@
                                 <!-- START DATE -->
                                 <div class="col-md-6">
                                     <label>Ngày bắt đầu</label>
-                                    <input type="date" name="start_date" class="form-control"
+                                    <input type="date" name="start_date" class="form-control" min="<?= date('Y-m-d') ?>"
                                         value="<?= date('Y-m-d') ?>" required>
                                 </div>
 
@@ -99,7 +99,7 @@
                                 <div class="col-md-6">
                                     <label>Số buổi</label>
                                     <input type="number" name="total_sessions" class="form-control"
-                                        placeholder="VD: 10" required>
+                                        placeholder="VD: 10" min="1" max="500" step="1" required>
                                 </div>
 
                             </div>
@@ -119,6 +119,47 @@
             <?php else: ?>
 
                 <!-- TABLE SESSIONS START-->
+                <?php if (isset($_GET['bulk_room_updated']) || isset($_GET['bulk_time_updated']) || isset($_GET['bulk_teacher_updated'])): ?>
+                    <div class="alert alert-info">
+                        <?php if (isset($_GET['bulk_room_updated'])): ?>
+                            Đã gán phòng cho <?= (int) $_GET['bulk_room_updated'] ?> buổi.
+                            <?php if ((int) ($_GET['bulk_room_skipped'] ?? 0) > 0): ?>
+                                Bỏ qua <?= (int) $_GET['bulk_room_skipped'] ?> buổi do trùng lịch hoặc đã hoàn thành/hủy.
+                            <?php endif; ?>
+                        <?php endif; ?>
+
+                        <?php if (isset($_GET['bulk_teacher_updated'])): ?>
+                            Đã gán giảng viên/trợ giảng cho <?= (int) $_GET['bulk_teacher_updated'] ?> buổi.
+                            <?php if ((int) ($_GET['bulk_teacher_skipped'] ?? 0) > 0): ?>
+                                Bỏ qua <?= (int) $_GET['bulk_teacher_skipped'] ?> buổi do trùng lịch hoặc đã hoàn thành/hủy.
+                            <?php endif; ?>
+                        <?php endif; ?>
+
+                        <?php if (isset($_GET['bulk_time_updated'])): ?>
+                            Đã gán giờ học cho <?= (int) $_GET['bulk_time_updated'] ?> buổi.
+                            <?php if ((int) ($_GET['bulk_time_skipped'] ?? 0) > 0): ?>
+                                Bỏ qua <?= (int) $_GET['bulk_time_skipped'] ?> buổi do trùng phòng/giảng viên hoặc đã hoàn thành/hủy.
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+
+                <div class="d-flex gap-2 flex-wrap mb-3">
+                    <button type="button" class="btn btn-outline-primary" id="bulkRoomBtn"
+                        data-bs-toggle="modal" data-bs-target="#bulkRoomModal" disabled>
+                        Gán phòng hàng loạt
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="bulkTimeBtn"
+                        data-bs-toggle="modal" data-bs-target="#bulkTimeModal" disabled>
+                        Gán giờ học hàng loạt
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="bulkTeacherBtn"
+                        data-bs-toggle="modal" data-bs-target="#bulkTeacherModal" disabled>
+                        Gán GV/TG hàng loạt
+                    </button>
+                    <span class="text-muted align-self-center" id="bulkSelectedText">Chưa chọn buổi nào</span>
+                </div>
+
                 <div class="card">
                     <div class="card-content">
                         <div class="table-responsive">
@@ -126,6 +167,9 @@
 
                                 <thead>
                                     <tr>
+                                        <th style="width:42px">
+                                            <input type="checkbox" class="form-check-input" id="selectAllSessions">
+                                        </th>
                                         <th>STT</th>
                                         <th>Ngày học</th>
                                         <th>Ca học</th>
@@ -133,7 +177,7 @@
                                         <th>Phòng</th>
                                         <th>Giảng viên</th>
                                         <th>Trợ giảng</th>
-                                        <th class="text-center">Điểm danh</th>
+                                        <th class="text-center">Thao tác</th>
                                         <th>Trạng thái</th>
                                     </tr>
                                 </thead>
@@ -141,6 +185,13 @@
                                 <tbody>
                                     <?php foreach ($sessions as $index => $s): ?>
                                         <tr>
+                                            <td>
+                                                <?php $isAssignable = !in_array($s['status'], ['done', 'cancelled'], true); ?>
+                                                <input type="checkbox" class="form-check-input bulk-session-check"
+                                                    value="<?= (int) $s['session_id'] ?>"
+                                                    <?= $isAssignable ? '' : 'disabled' ?>>
+                                            </td>
+
                                             <!-- STT START-->
                                             <td><?= $index + 1 ?></td>
                                             <!-- STT END-->
@@ -326,7 +377,7 @@
 
                     <div class="mb-3">
                         <label>Ngày học</label>
-                        <input type="date" name="session_date" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                        <input type="date" name="session_date" class="form-control" value="<?= date('Y-m-d') ?>" min="<?= date('Y-m-d') ?>" required>
                     </div>
 
                     <div class="mb-3">
@@ -494,6 +545,169 @@
 </div>
 <!-- MODAL CHỌN GV END-->
 
+<div class="modal fade" id="bulkRoomModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="?module=session&action=assignBulkRoom" id="bulkRoomForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Gán phòng hàng loạt</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="bulkRoomSessionInputs"></div>
+
+                    <label><b>Phòng học</b></label>
+                    <select name="room_id" class="form-control" required>
+                        <option value="">-- Chọn phòng --</option>
+                        <?php foreach ($rooms as $r): ?>
+                            <option value="<?= (int) $r['room_id'] ?>">
+                                <?= htmlspecialchars($r['name']) ?> (Sức chứa: <?= (int) $r['capacity'] ?>)
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+
+                    <small class="text-muted d-block mt-2">
+                        Hệ thống sẽ bỏ qua các buổi bị trùng phòng hoặc đã hoàn thành/hủy.
+                    </small>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-primary">Lưu</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="bulkTimeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="?module=session&action=assignBulkTime" id="bulkTimeForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Gán giờ học hàng loạt</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="bulkTimeSessionInputs"></div>
+
+                    <label><b>Ca học</b></label>
+                    <select name="shift_id" class="form-control" required>
+                        <option value="">-- Chọn ca --</option>
+                        <?php foreach ($shifts as $sh): ?>
+                            <option value="<?= (int) $sh['shift_id'] ?>">
+                                <?= htmlspecialchars($sh['name']) ?>
+                                (<?= substr($sh['start_time'], 0, 5) ?> - <?= substr($sh['end_time'], 0, 5) ?>)
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+
+                    <small class="text-muted d-block mt-2">
+                        Hệ thống sẽ bỏ qua buổi bị trùng phòng/giảng viên hoặc đã hoàn thành/hủy.
+                    </small>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-primary">Lưu</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<?php
+$recommendedTeachers = [];
+$otherTeachers = [];
+$lowerText = function ($value) {
+    return function_exists('mb_strtolower')
+        ? mb_strtolower((string) $value, 'UTF-8')
+        : strtolower((string) $value);
+};
+$textContains = function ($haystack, $needle) {
+    return function_exists('mb_strpos')
+        ? mb_strpos($haystack, $needle, 0, 'UTF-8') !== false
+        : strpos($haystack, $needle) !== false;
+};
+$classCourseName = $lowerText($class['course_name'] ?? '');
+
+foreach ($teachers as $teacherOption) {
+    if ((int) ($teacherOption['status'] ?? 1) !== 1) {
+        continue;
+    }
+
+    $specializationText = $lowerText($teacherOption['specialization_name'] ?? '');
+    $isRecommendedTeacher = $classCourseName !== ''
+        && $specializationText !== ''
+        && (
+            $textContains($classCourseName, $specializationText)
+            || $textContains($specializationText, $classCourseName)
+        );
+
+    if ($isRecommendedTeacher) {
+        $recommendedTeachers[] = $teacherOption;
+    } else {
+        $otherTeachers[] = $teacherOption;
+    }
+}
+?>
+
+<div class="modal fade" id="bulkTeacherModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="?module=session&action=assignBulkTeacher" id="bulkTeacherForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Gán giảng viên/trợ giảng hàng loạt</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="bulkTeacherSessionInputs"></div>
+
+                    <label><b>Giảng viên chính</b></label>
+                    <select name="main_teacher_id" class="form-control mb-3">
+                        <option value="">-- Không chọn --</option>
+                        <?php foreach (array_merge($recommendedTeachers, $otherTeachers) as $t): ?>
+                            <option value="<?= (int) $t['teacher_id'] ?>">
+                                <?= ((in_array($t, $recommendedTeachers, true)) ? '[Theo chuyên môn] ' : '[Khác] ') ?>
+                                <?= htmlspecialchars($t['name']) ?>
+                                <?= !empty($t['specialization_name']) ? ' - ' . htmlspecialchars($t['specialization_name']) : '' ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+
+                    <label><b>Trợ giảng</b></label>
+                    <div class="border rounded p-2" style="max-height:220px; overflow:auto">
+                        <?php foreach (array_merge($recommendedTeachers, $otherTeachers) as $t): ?>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox"
+                                        name="assistant_ids[]" value="<?= (int) $t['teacher_id'] ?>"
+                                        id="bulk_assistant_<?= (int) $t['teacher_id'] ?>">
+                                    <label class="form-check-label" for="bulk_assistant_<?= (int) $t['teacher_id'] ?>">
+                                        <?= ((in_array($t, $recommendedTeachers, true)) ? '[Theo chuyên môn] ' : '[Khác] ') ?>
+                                        <?= htmlspecialchars($t['name']) ?>
+                                        <?= !empty($t['specialization_name']) ? ' - ' . htmlspecialchars($t['specialization_name']) : '' ?>
+                                    </label>
+                                </div>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <small class="text-muted d-block mt-2">
+                        Hệ thống sẽ bỏ qua các buổi giảng viên/trợ giảng bị trùng lịch hoặc đã hoàn thành/hủy.
+                    </small>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-primary">Lưu</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL ĐIỂM DANH START-->
 <div class="modal fade" id="attendanceModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -557,6 +771,120 @@
 </div>
 
 <script>
+    function getSelectedSessionIds() {
+        return Array.from(document.querySelectorAll('.bulk-session-check:checked'))
+            .map(function (checkbox) {
+                return checkbox.value;
+            });
+    }
+
+    function renderBulkSessionInputs(containerId) {
+        const ids = getSelectedSessionIds();
+        const container = document.getElementById(containerId);
+
+        if (!container) {
+            return ids;
+        }
+
+        container.innerHTML = ids.map(function (id) {
+            return `<input type="hidden" name="session_ids[]" value="${escapeHtml(id)}">`;
+        }).join('');
+
+        return ids;
+    }
+
+    function updateBulkControls() {
+        const selectedCount = getSelectedSessionIds().length;
+        const hasSelected = selectedCount > 0;
+        const roomBtn = document.getElementById('bulkRoomBtn');
+        const timeBtn = document.getElementById('bulkTimeBtn');
+        const teacherBtn = document.getElementById('bulkTeacherBtn');
+        const selectedText = document.getElementById('bulkSelectedText');
+
+        if (roomBtn) roomBtn.disabled = !hasSelected;
+        if (timeBtn) timeBtn.disabled = !hasSelected;
+        if (teacherBtn) teacherBtn.disabled = !hasSelected;
+        if (selectedText) {
+            selectedText.textContent = hasSelected
+                ? `Đã chọn ${selectedCount} buổi`
+                : 'Chưa chọn buổi nào';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectAll = document.getElementById('selectAllSessions');
+        const sessionChecks = Array.from(document.querySelectorAll('.bulk-session-check'));
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                sessionChecks.forEach(function (checkbox) {
+                    if (!checkbox.disabled) {
+                        checkbox.checked = selectAll.checked;
+                    }
+                });
+
+                updateBulkControls();
+            });
+        }
+
+        sessionChecks.forEach(function (checkbox) {
+            checkbox.addEventListener('change', function () {
+                if (selectAll) {
+                    const enabledChecks = sessionChecks.filter(function (item) {
+                        return !item.disabled;
+                    });
+                    selectAll.checked = enabledChecks.length > 0 && enabledChecks.every(function (item) {
+                        return item.checked;
+                    });
+                }
+
+                updateBulkControls();
+            });
+        });
+
+        const bulkRoomForm = document.getElementById('bulkRoomForm');
+        if (bulkRoomForm) {
+            bulkRoomForm.addEventListener('submit', function (event) {
+                if (renderBulkSessionInputs('bulkRoomSessionInputs').length === 0) {
+                    event.preventDefault();
+                    alert('Vui lòng chọn ít nhất một buổi học.');
+                }
+            });
+        }
+
+        const bulkTeacherForm = document.getElementById('bulkTeacherForm');
+        if (bulkTeacherForm) {
+            bulkTeacherForm.addEventListener('submit', function (event) {
+                const selectedIds = renderBulkSessionInputs('bulkTeacherSessionInputs');
+                const mainTeacher = bulkTeacherForm.querySelector('[name="main_teacher_id"]')?.value;
+                const assistantCount = bulkTeacherForm.querySelectorAll('[name="assistant_ids[]"]:checked').length;
+
+                if (selectedIds.length === 0) {
+                    event.preventDefault();
+                    alert('Vui lòng chọn ít nhất một buổi học.');
+                    return;
+                }
+
+                if (!mainTeacher && assistantCount === 0) {
+                    event.preventDefault();
+                    alert('Vui lòng chọn giảng viên hoặc trợ giảng.');
+                }
+            });
+        }
+
+        const bulkTimeForm = document.getElementById('bulkTimeForm');
+        if (bulkTimeForm) {
+            bulkTimeForm.addEventListener('submit', function (event) {
+                if (renderBulkSessionInputs('bulkTimeSessionInputs').length === 0) {
+                    event.preventDefault();
+                    alert('Vui lòng chọn ít nhất một buổi học.');
+                }
+            });
+        }
+
+        updateBulkControls();
+    });
+
     function escapeHtml(value) {
         return String(value ?? '')
             .replace(/&/g, '&amp;')
@@ -564,6 +892,58 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+    }
+
+    function renderTeacherPicker(teachers, inputType) {
+        const recommended = teachers.filter(t => Number(t.is_recommended) === 1);
+        const others = teachers.filter(t => Number(t.is_recommended) !== 1);
+        const inputName = inputType === 'radio' ? 'main_teacher_id' : 'assistant_ids[]';
+        const emptyText = inputType === 'radio'
+            ? 'Không có giảng viên phù hợp chuyên môn.'
+            : 'Không có trợ giảng phù hợp chuyên môn.';
+
+        return `
+            ${renderTeacherGroup('Giảng viên theo chuyên môn', recommended, inputType, inputName, emptyText)}
+            ${renderTeacherGroup('Giảng viên khác', others, inputType, inputName, 'Không có giảng viên khác.')}
+        `;
+    }
+
+    function renderTeacherGroup(title, teachers, inputType, inputName, emptyText) {
+        let html = `
+            <div class="mb-2">
+                <div class="fw-bold small text-muted mb-1">${escapeHtml(title)}</div>
+        `;
+
+        if (!teachers.length) {
+            return html + `<div class="text-muted small mb-2">${escapeHtml(emptyText)}</div></div>`;
+        }
+
+        teachers.forEach(t => {
+            const disabled = Number(t.is_busy) === 1 ? 'disabled' : '';
+            const textClass = Number(t.is_busy) === 1 ? 'text-muted' : '';
+            const note = Number(t.is_busy) === 1
+                ? ' <span class="badge bg-danger">Giảng viên đang bận</span>'
+                : '';
+            const specs = t.specialization_names
+                ? `<div class="small text-muted">${escapeHtml(t.specialization_names)}</div>`
+                : '';
+            const inputId = `${inputType}_${inputName.replace(/[^a-z0-9]/gi, '')}_${t.teacher_id}`;
+
+            html += `
+                <div class="form-check ${textClass}">
+                    <input class="form-check-input" type="${inputType}"
+                        name="${inputName}"
+                        id="${inputId}"
+                        value="${Number(t.teacher_id)}" ${disabled}>
+                    <label class="form-check-label" for="${inputId}">
+                        ${escapeHtml(t.name)} ${note}
+                        ${specs}
+                    </label>
+                </div>
+            `;
+        });
+
+        return html + '</div>';
     }
 
     function openReviewModal(sessionId) {
@@ -592,6 +972,7 @@
                                 <textarea
                                     name="review_text[${student.student_id}]"
                                     class="form-control"
+                                    maxlength="1000"
                                     rows="3"
                                     placeholder="Nhập nhận xét riêng cho học sinh này...">${review}</textarea>
                             </div>
@@ -618,6 +999,9 @@
         fetch(`?module=session&action=getTeachersWithStatus&session_id=${id}`)
             .then(res => res.json())
             .then(data => {
+                document.getElementById('mainTeachers').innerHTML = renderTeacherPicker(data, 'radio');
+                document.getElementById('assistantTeachers').innerHTML = renderTeacherPicker(data, 'checkbox');
+                return;
 
                 let htmlMain = '';
                 let htmlAssist = '';

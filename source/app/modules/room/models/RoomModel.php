@@ -109,13 +109,23 @@ class RoomModel
 
     public function create($data)
     {
+        $name = trim((string) ($data['name'] ?? ''));
+
+        if ($name === '') {
+            throw new Exception('Vui lòng nhập tên phòng học');
+        }
+
+        if ($this->nameExists($name)) {
+            throw new Exception('Tên phòng học đã tồn tại');
+        }
+
         $sql = "INSERT INTO rooms (name, capacity, status)
                 VALUES (:name, :capacity, :status)";
 
         $stmt = $this->db->prepare($sql);
 
         $stmt->execute([
-            'name' => trim($data['name']),
+            'name' => $name,
             'capacity' => (int) $data['capacity'],
             'status' => $data['status'] ?? 'active'
         ]);
@@ -262,5 +272,17 @@ class RoomModel
         $stmt->execute([$roomId]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function nameExists($name)
+    {
+        $stmt = $this->db->prepare("
+            SELECT 1
+            FROM rooms
+            WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
+            LIMIT 1
+        ");
+        $stmt->execute([$name]);
+        return (bool) $stmt->fetchColumn();
     }
 }

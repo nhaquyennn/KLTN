@@ -77,6 +77,23 @@ class SessionController extends Controller
         header("Location: " . $_SERVER['HTTP_REFERER']);
     }
 
+    public function assignBulkRoom()
+    {
+        $result = (new SessionModel())->assignRoomToSessions(
+            $_POST['session_ids'] ?? [],
+            $_POST['room_id'] ?? null
+        );
+
+        $redirect = $_SERVER['HTTP_REFERER'] ?? '?module=class&action=index';
+        $separator = strpos($redirect, '?') === false ? '?' : '&';
+
+        header("Location: " . $redirect . $separator . http_build_query([
+            'bulk_room_updated' => $result['updated'],
+            'bulk_room_skipped' => $result['skipped']
+        ]));
+        exit;
+    }
+
     public function assignTime()
     {
         (new SessionModel())->updateShift(
@@ -98,6 +115,24 @@ class SessionController extends Controller
         );
 
         header("Location: " . $_SERVER['HTTP_REFERER']);
+    }
+
+    public function assignBulkTeacher()
+    {
+        $result = (new SessionModel())->assignTeachersToSessions(
+            $_POST['session_ids'] ?? [],
+            $_POST['main_teacher_id'] ?? null,
+            $_POST['assistant_ids'] ?? []
+        );
+
+        $redirect = $_SERVER['HTTP_REFERER'] ?? '?module=class&action=index';
+        $separator = strpos($redirect, '?') === false ? '?' : '&';
+
+        header("Location: " . $redirect . $separator . http_build_query([
+            'bulk_teacher_updated' => $result['updated'],
+            'bulk_teacher_skipped' => $result['skipped']
+        ]));
+        exit;
     }
 
     public function takeAttendance()
@@ -168,6 +203,23 @@ class SessionController extends Controller
         );
 
         header("Location: " . $_SERVER['HTTP_REFERER']);
+    }
+
+    public function assignBulkTime()
+    {
+        $result = (new SessionModel())->assignShiftToSessions(
+            $_POST['session_ids'] ?? [],
+            $_POST['shift_id'] ?? null
+        );
+
+        $redirect = $_SERVER['HTTP_REFERER'] ?? '?module=class&action=index';
+        $separator = strpos($redirect, '?') === false ? '?' : '&';
+
+        header("Location: " . $redirect . $separator . http_build_query([
+            'bulk_time_updated' => $result['updated'],
+            'bulk_time_skipped' => $result['skipped']
+        ]));
+        exit;
     }
 
     public function saveReview()

@@ -17,37 +17,37 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label>Tên học viên</label>
-                                <input type="text" name="name" class="form-control" required>
+                                <input type="text" name="name" class="form-control" maxlength="100" required>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label>SĐT học viên</label>
-                                <input type="text" name="phone" class="form-control" required>
+                                <input type="tel" name="phone" class="form-control" maxlength="20" pattern="[0-9+\-\s]{9,20}" required>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label>Email đăng nhập</label>
-                                <input type="email" name="email" class="form-control" required>
+                                <input type="email" name="email" class="form-control" maxlength="150" required>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label>Mật khẩu đăng nhập</label>
-                                <input type="text" name="password" class="form-control" required>
+                                <input type="password" name="password" class="form-control" minlength="6" maxlength="255" autocomplete="new-password" required>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label>Phụ huynh</label>
-                                <input type="text" name="parent_name" class="form-control">
+                                <input type="text" name="parent_name" class="form-control" maxlength="100">
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label>SĐT phụ huynh</label>
-                                <input type="text" name="parent_phone" class="form-control">
+                                <input type="tel" name="parent_phone" class="form-control" maxlength="20" pattern="[0-9+\-\s]{9,20}">
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label>Ngày sinh</label>
-                                <input type="date" name="date_of_birth" class="form-control">
+                                <input type="date" name="date_of_birth" class="form-control" max="<?= date('Y-m-d') ?>">
                             </div>
 
                             <div class="col-md-6 mb-3">

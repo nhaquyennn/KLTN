@@ -43,15 +43,15 @@
                             <form method="POST" action="?module=auth&action=updatePassword">
                                 <div class="mb-3">
                                     <label>Mật khẩu hiện tại</label>
-                                    <input type="password" name="current_password" class="form-control" required>
+                                    <input type="password" name="current_password" class="form-control" maxlength="255" required>
                                 </div>
                                 <div class="mb-3">
                                     <label>Mật khẩu mới</label>
-                                    <input type="password" name="new_password" class="form-control" minlength="6" required>
+                                    <input type="password" name="new_password" class="form-control" minlength="6" maxlength="255" required>
                                 </div>
                                 <div class="mb-3">
                                     <label>Xác nhận mật khẩu mới</label>
-                                    <input type="password" name="confirm_password" class="form-control" minlength="6" required>
+                                    <input type="password" name="confirm_password" class="form-control" minlength="6" maxlength="255" required>
                                 </div>
                                 <button class="btn btn-primary">
                                     <i class="bi bi-shield-lock"></i> Lưu mật khẩu

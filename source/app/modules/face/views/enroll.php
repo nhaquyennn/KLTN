@@ -121,6 +121,7 @@
                 <div class="face-guide">
                     Không đeo khẩu trang, đảm bảo đủ ánh sáng, chỉ để 1 khuôn mặt trong khung hình.
                     Nếu đăng ký lại cho người đã có dữ liệu, hệ thống sẽ ghi đè dữ liệu khuôn mặt cũ.
+                    Hệ thống sẽ chặn ảnh chụp màn hình, ảnh in hoặc khuôn mặt không đạt kiểm tra chống giả mạo.
                 </div>
 
                 <div class="camera-wrapper">

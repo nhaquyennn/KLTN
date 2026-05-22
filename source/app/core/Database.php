@@ -9,6 +9,7 @@ class Database {
 
     public function connect() {
         $this->conn = null;
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
 
         try {
             $this->conn = new PDO(
@@ -19,6 +20,7 @@ class Database {
 
             // set mode lỗi
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->conn->exec("SET time_zone = '+07:00'");
 
         } catch (PDOException $e) {
             die("Kết nối CSDL thất bại: " . $e->getMessage());

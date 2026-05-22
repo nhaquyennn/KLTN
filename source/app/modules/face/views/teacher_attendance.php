@@ -258,6 +258,7 @@ let scanning = false;
 let isSaving = false;
 let scanTimer = null;
 let lastCheck = {};
+let livenessVerifiedUntil = 0;
 
 document.getElementById("startScanBtn").addEventListener("click", async () => {
     if (!networkAllowed) {
@@ -270,9 +271,17 @@ document.getElementById("startScanBtn").addEventListener("click", async () => {
         await startCamera();
     }
 
+    scanning = false;
+    const verified = await runLivenessChallenge();
+
+    if (!verified) {
+        return;
+    }
+
+    livenessVerifiedUntil = Date.now() + 30000;
     scanning = true;
     guideText.innerText = "Đưa gương mặt vào camera";
-    statusEl.innerText = "Camera sẵn sàng, đang quét...";
+    statusEl.innerText = "Đã xác minh người thật, đang quét nhận diện...";
 });
 
 document.getElementById("refreshRosterBtn").addEventListener("click", loadRoster);
@@ -302,9 +311,90 @@ function resizeOverlay()
     overlay.height = video.videoHeight || video.clientHeight;
 }
 
+async function runLivenessChallenge()
+{
+    const steps = [
+        { key: "front", text: "Nhìn thẳng vào camera" },
+        { key: "left", text: "Quay mặt sang trái" },
+        { key: "right", text: "Quay mặt sang phải" }
+    ];
+    const captures = {};
+
+    for (const step of steps) {
+        guideText.innerText = step.text;
+
+        for (let count = 3; count > 0; count--) {
+            statusEl.innerText = `${step.text} - chụp sau ${count}`;
+            await wait(800);
+        }
+
+        captures[step.key] = await captureVideoBlob(0.92);
+
+        if (!captures[step.key]) {
+            statusEl.innerText = "Không chụp được ảnh kiểm tra chống gian lận.";
+            return false;
+        }
+    }
+
+    const formData = new FormData();
+    formData.append("front", captures.front, "front.jpg");
+    formData.append("left", captures.left, "left.jpg");
+    formData.append("right", captures.right, "right.jpg");
+
+    statusEl.innerText = "Đang kiểm tra chống gian lận...";
+
+    try {
+        const res = await fetch("?module=face&action=livenessProxy", {
+            method: "POST",
+            body: formData
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showToast(data.message || "Đã xác minh người thật.");
+            return true;
+        }
+
+        const message = data.message || "Không vượt qua kiểm tra chống gian lận.";
+        statusEl.innerText = message;
+        showToast(message, true);
+        return false;
+    } catch (err) {
+        console.error("LIVENESS ERROR:", err);
+        statusEl.innerText = "Không kiểm tra được chống gian lận. Kiểm tra AI server.";
+        return false;
+    }
+}
+
+function captureVideoBlob(quality = 0.88)
+{
+    if (!video.videoWidth) {
+        return Promise.resolve(null);
+    }
+
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = video.videoWidth;
+    tempCanvas.height = video.videoHeight;
+    tempCanvas.getContext("2d").drawImage(video, 0, 0);
+
+    return new Promise(resolve => tempCanvas.toBlob(resolve, "image/jpeg", quality));
+}
+
+function wait(ms)
+{
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function scanFrame()
 {
     if (!scanning || !cameraReady || video.videoWidth === 0) {
+        return;
+    }
+
+    if (Date.now() > livenessVerifiedUntil) {
+        scanning = false;
+        guideText.innerText = "Cần xác minh lại người thật";
+        statusEl.innerText = "Phiên chống gian lận đã hết hạn. Nhấn bắt đầu quét để xác minh lại.";
         return;
     }
 
@@ -347,12 +437,19 @@ function handleAiResult(data)
     }
 
     if (data.box) {
-        ctx.strokeStyle = data.matched ? "#22c55e" : "#f59e0b";
+        ctx.strokeStyle = data.spoof_detected ? "#dc3545" : (data.matched ? "#22c55e" : "#f59e0b");
         ctx.lineWidth = 3;
         ctx.strokeRect(data.box.left, data.box.top, data.box.width, data.box.height);
         ctx.fillStyle = ctx.strokeStyle;
         ctx.font = "20px Arial";
-        ctx.fillText(data.name || "Unknown", data.box.left, Math.max(22, data.box.top - 8));
+        ctx.fillText(data.spoof_detected ? "Spoof" : (data.name || "Unknown"), data.box.left, Math.max(22, data.box.top - 8));
+    }
+
+    if (data.spoof_detected) {
+        const message = data.message || "Hệ thống nghi ngờ ảnh giả mạo. Vui lòng dùng khuôn mặt thật trước camera.";
+        statusEl.innerText = message;
+        showToast(message, true);
+        return;
     }
 
     if (!data.matched || !data.user_id) {

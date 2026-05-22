@@ -13,6 +13,77 @@
         <div class="alert alert-danger"><?= htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?></div>
     <?php endif; ?>
 
+    <section class="mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+                    <div>
+                        <h5 class="fw-bold mb-1">Học phí gói đã đăng ký</h5>
+                        <small class="text-muted">Thanh toán phần học phí còn lại qua VNPay.</small>
+                    </div>
+                </div>
+
+                <?php if (empty($activeEnrollments)): ?>
+                    <div class="text-muted">Học viên chưa có gói học đang theo dõi.</div>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Khóa học</th>
+                                    <th>Lớp</th>
+                                    <th>Tổng học phí</th>
+                                    <th>Đã đóng</th>
+                                    <th>Còn lại</th>
+                                    <th>Mã giao dịch</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-end">Thanh toán</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($activeEnrollments as $enrollment): ?>
+                                    <?php
+                                    $finalFee = (float) ($enrollment['final_fee'] ?? 0);
+                                    $paidAmount = (float) ($enrollment['paid_amount'] ?? 0);
+                                    $remainingFee = max(0, $finalFee - $paidAmount);
+                                    $isPaid = $remainingFee <= 0 || ($enrollment['payment_status'] ?? '') === 'paid';
+                                    $statusLabel = $isPaid
+                                        ? 'Đã thanh toán'
+                                        : (($enrollment['payment_status'] ?? '') === 'partial' ? 'Đã thanh toán một phần' : 'Chưa thanh toán');
+                                    $statusClass = $isPaid ? 'bg-success' : (($enrollment['payment_status'] ?? '') === 'partial' ? 'bg-warning text-dark' : 'bg-danger');
+                                    ?>
+                                    <tr>
+                                        <td>
+                                            <div class="fw-semibold"><?= htmlspecialchars($enrollment['course_name'] ?? '') ?></div>
+                                            <small class="text-muted"><?= htmlspecialchars($enrollment['package_name'] ?? '') ?></small>
+                                        </td>
+                                        <td><?= htmlspecialchars($enrollment['class_code'] ?? '') ?></td>
+                                        <td><?= number_format($finalFee) ?>đ</td>
+                                        <td><?= number_format($paidAmount) ?>đ</td>
+                                        <td class="fw-semibold"><?= number_format($remainingFee) ?>đ</td>
+                                        <td><?= htmlspecialchars($enrollment['transaction_code'] ?: '-') ?></td>
+                                        <td><span class="badge <?= $statusClass ?>"><?= $statusLabel ?></span></td>
+                                        <td class="text-end">
+                                            <?php if ($isPaid): ?>
+                                                <span class="text-muted small">Đã hoàn tất</span>
+                                            <?php else: ?>
+                                                <a
+                                                    class="btn btn-sm btn-primary"
+                                                    href="?module=parent&action=payment&id=<?= (int) $enrollment['enrollment_id'] ?>">
+                                                    Thanh toán VNPay
+                                                </a>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </section>
+
     <div class="row g-3">
         <?php if (empty($classes)): ?>
             <div class="col-12">

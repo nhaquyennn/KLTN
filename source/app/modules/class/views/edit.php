@@ -78,7 +78,7 @@
                             <div class="col-md-6">
                                 <label>Số học viên tối đa</label>
                                 <input type="number" name="max_students" value="<?= (int) ($class['max_students'] ?? 10) ?>"
-                                    class="form-control" min="1" required>
+                                    class="form-control" min="1" max="200" step="1" required>
                             </div>
 
                         </div>

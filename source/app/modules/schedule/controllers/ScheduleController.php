@@ -38,12 +38,19 @@ class ScheduleController extends Controller
 
     public function store()
     {
-        $model = new ScheduleModel();
+        try {
+            $model = new ScheduleModel();
 
-        $model->create(
-            ['name' => $_POST['name'], 'code' => $_POST['code']],
-            $_POST['days'] ?? []
-        );
+            $model->create(
+                ['name' => $_POST['name'], 'code' => $_POST['code']],
+                $_POST['days'] ?? []
+            );
+            $_SESSION['success'] = 'Thêm lịch học thành công';
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
+            header("Location: ?module=schedule&action=create");
+            exit;
+        }
 
         header("Location: ?module=schedule");
         exit;

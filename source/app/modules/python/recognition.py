@@ -6,6 +6,7 @@ import mysql.connector
 
 from insightface.app import FaceAnalysis
 from sklearn.preprocessing import normalize
+from anti_spoofing import check_liveness, decode_image, verify_head_turn_challenge
 
 # =========================================================
 # INSIGHTFACE
@@ -44,6 +45,31 @@ def reset_enroll_session(user_id):
     return {
         "success": True,
         "message": "Enrollment session reset"
+    }
+
+
+async def verify_liveness_challenge(front_bytes, left_bytes, right_bytes):
+
+    frames = [
+        decode_image(front_bytes),
+        decode_image(left_bytes),
+        decode_image(right_bytes)
+    ]
+
+    if any(frame is None for frame in frames):
+        return {
+            "success": False,
+            "spoof_detected": True,
+            "message": "Không đọc được ảnh kiểm tra chống gian lận."
+        }
+
+    result = verify_head_turn_challenge(frames, app)
+
+    return {
+        "success": result["is_live"],
+        "spoof_detected": not result["is_live"],
+        "liveness": result,
+        "message": result["message"]
     }
 
 # =========================================================
@@ -104,6 +130,17 @@ async def enroll_face(user_id, image_bytes):
                 "success": False,
                 "message":
                     f"Cần đúng 1 khuôn mặt (hiện có {len(faces)})"
+            }
+
+        liveness = check_liveness(frame, faces[0])
+
+        if not liveness["is_live"]:
+
+            return {
+                "success": False,
+                "spoof_detected": True,
+                "liveness": liveness,
+                "message": liveness["message"]
             }
 
         # =====================================
@@ -290,6 +327,30 @@ async def recognize_face(image_bytes):
                 (f.bbox[3]-f.bbox[1])
         )
 
+        liveness = check_liveness(frame, face)
+
+        if not liveness["is_live"]:
+
+            x1, y1, x2, y2 = map(
+                int,
+                face.bbox
+            )
+
+            return {
+                "success": True,
+                "face_found": True,
+                "matched": False,
+                "spoof_detected": True,
+                "liveness": liveness,
+                "message": liveness["message"],
+                "box": {
+                    "top": y1,
+                    "left": x1,
+                    "width": x2 - x1,
+                    "height": y2 - y1
+                }
+            }
+
         unknown = normalize(
             [face.embedding]
         )[0]
@@ -373,6 +434,9 @@ async def recognize_face(image_bytes):
 
             "score":
                 float(best_score),
+
+            "liveness":
+                liveness,
 
             "box": {
 

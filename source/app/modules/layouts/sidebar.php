@@ -43,6 +43,13 @@ $currentAction = $_GET['action'] ?? 'index';
 
                     <li class="sidebar-title">Giảng dạy</li>
 
+                    <li class="sidebar-item <?= $currentModule == 'teacherDashboard' ? 'active' : '' ?>">
+                        <a href="?module=teacherDashboard&action=index" class="sidebar-link">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+
                     <!-- LỚP HỌC -->
                     <li class="sidebar-item <?= $currentModule == 'class' ? 'active' : '' ?>">
                         <a href="?module=class&action=index" class="sidebar-link">
@@ -127,6 +134,15 @@ $currentAction = $_GET['action'] ?? 'index';
                         </a>
 
                     </li>
+
+                    <?php if ($role === 'admin'): ?>
+                        <li class="sidebar-item <?= $currentModule == 'revenue' ? 'active' : '' ?>">
+                            <a href="?module=revenue&action=index" class="sidebar-link">
+                                <i class="bi bi-graph-up-arrow"></i>
+                                <span>Thống kê doanh thu</span>
+                            </a>
+                        </li>
+                    <?php endif; ?>
 
                     <li class="sidebar-item <?= $currentModule == 'account' ? 'active' : '' ?>">
                         <a href="?module=account&action=index" class="sidebar-link">

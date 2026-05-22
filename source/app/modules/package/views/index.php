@@ -49,7 +49,7 @@
 
                             <!-- KEYWORD -->
                             <div class="col-md-3">
-                                <input type="text" name="keyword" class="form-control" placeholder="Tìm tên gói..."
+                                <input type="text" name="keyword" class="form-control" placeholder="Tìm tên gói..." maxlength="100"
                                     value="<?= htmlspecialchars($keyword ?? '') ?>">
                             </div>
 
@@ -69,8 +69,8 @@
                             <div class="col-md-2">
                                 <select name="status" class="form-control">
                                     <option value="">-- Trạng thái --</option>
-                                    <option value="active" <?= $status == 'active' ? 'selected' : '' ?>>Active</option>
-                                    <option value="inactive" <?= $status == 'inactive' ? 'selected' : '' ?>>Inactive
+                                    <option value="active" <?= $status == 'active' ? 'selected' : '' ?>>Hoạt động</option>
+                                    <option value="inactive" <?= $status == 'inactive' ? 'selected' : '' ?>>Ngưng hoạt động
                                     </option>
                                 </select>
                             </div>
@@ -82,7 +82,7 @@
                                 </button>
 
                                 <a href="?module=package" class="btn btn-secondary">
-                                    <i class="bi bi-arrow-clockwise"></i> Reset
+                                    <i class="bi bi-arrow-clockwise"></i> Đặt lại
                                 </a>
                             </div>
 
@@ -102,7 +102,7 @@
                                         <th>SỐ BUỔI</th>
                                         <th>GIÁ</th>
                                         <th>TRẠNG THÁI</th>
-                                        <th class="text-center">ACTION</th>
+                                        <th class="text-center">Thao tác</th>
                                     </tr>
                                 </thead>
 
@@ -122,19 +122,19 @@
 
                                                 <td>
                                                     <?php if (($p['status'] ?? 'active') == 'active'): ?>
-                                                        <span class="badge bg-success">Active</span>
+                                                        <span class="badge bg-success">Hoạt động</span>
                                                     <?php else: ?>
-                                                        <span class="badge bg-danger">Inactive</span>
+                                                        <span class="badge bg-danger">Ngưng hoạt động</span>
                                                     <?php endif; ?>
                                                 </td>
 
                                                 <td class="text-center">
                                                     <a href="?module=package&action=edit&id=<?= $p['package_id'] ?>"
-                                                        class="btn btn-sm btn-warning">Edit</a>
+                                                        class="btn btn-sm btn-warning">Sửa</a>
 
                                                     <a href="?module=package&action=delete&id=<?= $p['package_id'] ?>"
                                                         class="btn btn-sm btn-danger"
-                                                        onclick="return confirm('Xóa gói này?')">Delete</a>
+                                                        onclick="return confirm('Xóa gói này?')">Xóa</a>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>

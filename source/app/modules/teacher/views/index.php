@@ -53,15 +53,19 @@
                     <div class="filter-box mb-3">
                         <form method="GET" class="mb-3">
                             <input type="hidden" name="module" value="teacher">
+                            <input type="hidden" name="action" value="index">
+                            <?php if (!empty($_GET['level_id'])): ?>
+                                <input type="hidden" name="level_id" value="<?= htmlspecialchars($_GET['level_id']) ?>">
+                            <?php endif; ?>
 
                             <div class="row">
                                 <div class="col-md-3">
-                                    <input type="text" name="keyword" class="form-control" placeholder="Tìm tên / email"
+                                    <input type="text" name="keyword" class="form-control" placeholder="Tìm tên / email" maxlength="100"
                                         value="<?= $_GET['keyword'] ?? '' ?>">
                                 </div>
 
                                 <div class="col-md-2">
-                                    <input type="text" name="specialization_name" class="form-control"
+                                    <input type="text" name="specialization_name" class="form-control" maxlength="100"
                                         placeholder="Chuyên môn" value="<?= $_GET['specialization_name_name'] ?? '' ?>">
                                 </div>
 
@@ -81,10 +85,10 @@
                                     <select name="status" class="form-control">
                                         <option value="">-- Trạng thái --</option>
                                         <option value="1" <?= ($_GET['status'] ?? '') == '1' ? 'selected' : '' ?>>
-                                            Active
+                                            Hoạt động
                                         </option>
                                         <option value="0" <?= ($_GET['status'] ?? '') == '0' ? 'selected' : '' ?>>
-                                            Inactive
+                                            Ngưng hoạt động
                                         </option>
                                     </select>
                                 </div>
@@ -94,7 +98,7 @@
                                         <i class="bi bi-search"></i> Lọc
                                     </button>
                                     <a href="?module=teacher" class="btn btn-secondary">
-                                        Reset
+                                        Đặt lại
                                     </a>
                                 </div>
                             </div>
@@ -116,7 +120,7 @@
                                             <th>NGÀY VÀO</th>
                                             <th>LƯƠNG</th>
                                             <th>TRẠNG THÁI</th>
-                                            <th>ACTION</th>
+                                            <th>Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -127,9 +131,12 @@
                                                     <td class="text-center"><?= $i++ ?></td>
                                                     <td class="text-bold-500"><?= htmlspecialchars($t['name']) ?></td>
                                                     <td><?= htmlspecialchars($t['email']) ?></td>
-                                                    <td><?= $t['specialization_name'] ?></td>
+                                                    <td><?= htmlspecialchars($t['specialization_name'] ?? '') ?></td>
                                                     <td><?= $t['hire_date'] ?></td>
                                                     <td>
+                                                        <?php if (!empty($t['level_name'])): ?>
+                                                            <div class="fw-semibold"><?= htmlspecialchars($t['level_name']) ?></div>
+                                                        <?php endif; ?>
                                                         <?php if ($t['salary_type'] == 'per_session'): ?>
                                                             <?= number_format($t['salary_value']) ?> / buổi
                                                         <?php else: ?>
@@ -138,17 +145,22 @@
                                                     </td>
                                                     <td>
                                                         <?php if ($t['status'] == 1): ?>
-                                                            <span class="badge bg-success">Active</span>
+                                                            <span class="badge bg-success">Hoạt động</span>
                                                         <?php else: ?>
-                                                            <span class="badge bg-danger">Inactive</span>
+                                                            <span class="badge bg-danger">Ngưng hoạt động</span>
                                                         <?php endif; ?>
                                                     </td>
                                                     <td>
+                                                        <a href="?module=teacher&action=teaching_history&id=<?= $t['teacher_id'] ?>"
+                                                            class="btn btn-sm btn-info">
+                                                            <i class="bi bi-clock-history"></i> Lịch sử dạy
+                                                        </a>
+
                                                         <?php if ($t['status'] == 1): ?>
                                                             <!-- ACTIVE -->
                                                             <a href="?module=teacher&action=edit&id=<?= $t['teacher_id'] ?>"
                                                                 class="btn btn-sm btn-warning">
-                                                                <i class="bi bi-pencil"></i> Edit
+                                                                <i class="bi bi-pencil"></i> Sửa
                                                             </a>
 
                                                             <a href="?module=teacher&action=delete&id=<?= $t['teacher_id'] ?>"
@@ -187,6 +199,7 @@
                                             &keyword=<?= $_GET['keyword'] ?? '' ?>
                                             &specialization_name=<?= $_GET['specialization_name'] ?? '' ?>
                                             &salary_type=<?= $_GET['salary_type'] ?? '' ?>
+                                            &level_id=<?= $_GET['level_id'] ?? '' ?>
                                             &status=<?= $_GET['status'] ?? '' ?>">
                                             «
                                         </a>
@@ -198,6 +211,7 @@
                                                 &keyword=<?= $_GET['keyword'] ?? '' ?>
                                                 &specialization_name=<?= $_GET['specialization_name'] ?? '' ?>
                                                 &salary_type=<?= $_GET['salary_type'] ?? '' ?>
+                                                &level_id=<?= $_GET['level_id'] ?? '' ?>
                                                 &status=<?= $_GET['status'] ?? '' ?>">
                                                 <?= $i ?>
                                             </a>
@@ -210,6 +224,7 @@
                                             &keyword=<?= $_GET['keyword'] ?? '' ?>
                                             &specialization_name=<?= $_GET['specialization_name'] ?? '' ?>
                                             &salary_type=<?= $_GET['salary_type'] ?? '' ?>
+                                            &level_id=<?= $_GET['level_id'] ?? '' ?>
                                             &status=<?= $_GET['status'] ?? '' ?>">
                                             »
                                         </a>

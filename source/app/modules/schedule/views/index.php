@@ -52,7 +52,7 @@
 
                                 <!-- Keyword -->
                                 <div class="col-md-3">
-                                    <input type="text" name="keyword" class="form-control" placeholder="Tìm lịch học..."
+                                    <input type="text" name="keyword" class="form-control" placeholder="Tìm lịch học..." maxlength="100"
                                         value="<?= htmlspecialchars($filters['keyword']) ?>">
                                 </div>
 

@@ -115,6 +115,12 @@ class FaceController extends Controller
         $this->proxyFaceAiPost('/recognize', [], ['image']);
     }
 
+    public function livenessProxy()
+    {
+        $this->role(['admin', 'teacher']);
+        $this->proxyFaceAiPost('/liveness/verify', [], ['front', 'left', 'right']);
+    }
+
     public function enrollProxy()
     {
         $this->role(['admin', 'teacher']);
@@ -133,15 +139,38 @@ class FaceController extends Controller
 
     public function lateReport()
     {
+        $this->role(['admin']);
         $filter = $_GET['filter'] ?? 'all';
         $date = $_GET['date'] ?? date('Y-m-d');
         $model = new FaceModel();
+        $model->processOverdueAttendancePolicy();
         $reports = $model->getAttendanceReport($filter, $date);
 
         $view = ROOT_PATH . "/modules/face/views/late_report.php";
         $header = ROOT_PATH . "/modules/layouts/header_teacher.php";
 
         require_once ROOT_PATH . "/modules/layouts/main.php";
+    }
+
+    public function closeOverdueSessions()
+    {
+        $this->role(['admin']);
+        header('Content-Type: application/json');
+
+        try {
+            (new FaceModel())->processOverdueAttendancePolicy();
+            echo json_encode([
+                'success' => true,
+                'message' => 'Đã xử lý buổi học và điểm danh quá 30 phút.'
+            ]);
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+
+        exit;
     }
 
     public function wifiConfig()

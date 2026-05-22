@@ -15,6 +15,7 @@ class TeacherController extends Controller
             'keyword' => $_GET['keyword'] ?? null,
             'specialization' => $_GET['specialization'] ?? null,
             'salary_type' => $_GET['salary_type'] ?? null,
+            'level_id' => $_GET['level_id'] ?? null,
             'status' => $_GET['status'] ?? null,
         ];
 
@@ -56,14 +57,17 @@ class TeacherController extends Controller
     public function store()
     {
         $model = new TeacherModel();
+        $specializationIds = array_values(array_filter(array_map('intval', $_POST['specialization_ids'] ?? [$_POST['specialization_id'] ?? null])));
+        $primarySpecializationId = (int) (reset($specializationIds) ?: ($_POST['specialization_id'] ?? 0));
 
         $data = [
             'name' => $_POST['name'],
             'email' => $_POST['email'],
             'password' => $_POST['password'] ?? '',
-            'specialization_id' => $_POST['specialization_id'],
+            'specialization_id' => $primarySpecializationId,
+            'specialization_ids' => $specializationIds,
             'hire_date' => $_POST['hire_date'],
-            'salary_type' => $_POST['salary_type'],
+            'salary_type' => 'per_session',
             'salary_value' => $_POST['salary_value'],
             'status' => $_POST['status']
         ];
@@ -100,15 +104,18 @@ class TeacherController extends Controller
     public function update()
     {
         $model = new TeacherModel();
+        $specializationIds = array_values(array_filter(array_map('intval', $_POST['specialization_ids'] ?? [$_POST['specialization_id'] ?? null])));
+        $primarySpecializationId = (int) (reset($specializationIds) ?: ($_POST['specialization_id'] ?? 0));
 
         $data = [
             'teacher_id' => $_POST['teacher_id'],
             'name' => $_POST['name'],
             'email' => $_POST['email'],
             'password' => $_POST['password'] ?? '',
-            'specialization_id' => $_POST['specialization_id'],
+            'specialization_id' => $primarySpecializationId,
+            'specialization_ids' => $specializationIds,
             'hire_date' => $_POST['hire_date'],
-            'salary_type' => $_POST['salary_type'],
+            'salary_type' => 'per_session',
             'salary_value' => $_POST['salary_value'],
             'status' => $_POST['status'] ?? 1
         ];
@@ -155,10 +162,43 @@ class TeacherController extends Controller
     public function history()
     {
         $teacherId = $_SESSION['user']['id'];
+        $month = $_GET['month'] ?? null;
+        $year = $_GET['year'] ?? date('Y');
 
         $model = new TeacherModel();
 
-        $data = $model->getTeachingHistoryByUserId($teacherId);
+        $data = $model->getTeachingHistoryByUserId($teacherId, $month, $year);
+        $pageTitle = 'Lịch sử dạy';
+        $resetUrl = '?module=teacher&action=history';
+        $filterAction = 'history';
+
+        $view = ROOT_PATH . "/modules/teacher/views/history.php";
+
+        $header = ROOT_PATH . "/modules/layouts/header_teacher.php";
+
+        require_once ROOT_PATH . "/modules/layouts/main.php";
+    }
+
+    public function teaching_history()
+    {
+        $teacherId = $_GET['id'] ?? 0;
+
+        $model = new TeacherModel();
+
+        $teacher = $model->findById($teacherId);
+
+        if (!$teacher) {
+            header("Location: ?module=teacher&action=index");
+            exit;
+        }
+
+        $month = $_GET['month'] ?? null;
+        $year = $_GET['year'] ?? date('Y');
+
+        $data = $model->getTeachingHistoryByTeacherId($teacherId, $month, $year);
+        $pageTitle = 'Lịch sử buổi dạy - ' . ($teacher['name'] ?? '');
+        $resetUrl = '?module=teacher&action=teaching_history&id=' . (int) $teacherId;
+        $filterAction = 'teaching_history';
 
         $view = ROOT_PATH . "/modules/teacher/views/history.php";
 
@@ -226,6 +266,16 @@ class TeacherController extends Controller
         exit;
     }
 
+    public function autoPromoteSalaryLevels()
+    {
+        $model = new SalaryModel();
+
+        $result = $model->autoPromoteTeacherLevels('per_session');
+
+        header("Location: ?module=teacher&action=salary_config&promoted={$result['promoted']}&checked={$result['checked']}&skipped={$result['skipped']}");
+        exit;
+    }
+
     // ===== PAYROLL =====
     public function payroll()
     {
@@ -259,6 +309,7 @@ class TeacherController extends Controller
     // ===== BONUS & PENALTIES =====
     public function bonus_penalties()
     {
+        $this->role(['admin']);
         $salaryModel = new SalaryModel();
 
         $teacherModel = new TeacherModel();
@@ -271,7 +322,14 @@ class TeacherController extends Controller
 
         $stats = $salaryModel->getStats($month, $year);
 
-        $history = $salaryModel->getHistory($month, $year);
+        $historyFilters = [
+            'teacher_id' => $_GET['teacher_id'] ?? null,
+            'kind' => $_GET['kind'] ?? 'all',
+            'from_date' => $_GET['from_date'] ?? null,
+            'to_date' => $_GET['to_date'] ?? null,
+        ];
+
+        $history = $salaryModel->getHistory($month, $year, $historyFilters);
 
         $sessions = $salaryModel->getTeachingSessionsForAdjustments($month, $year);
 
@@ -285,6 +343,7 @@ class TeacherController extends Controller
     // ===== SAVE BONUS / PENALTY =====
     public function saveTransaction()
     {
+        $this->role(['admin']);
         header('Content-Type: application/json');
 
         try {
@@ -380,17 +439,72 @@ class TeacherController extends Controller
     // ===== DELETE TRANSACTION =====
     public function deleteTransaction()
     {
+        $this->role(['admin']);
         header('Content-Type: application/json');
 
         $id = $_GET['id'];
 
         $model = new SalaryModel();
 
-        $ok = $model->deletePenaltyById($id);
+        $ok = $model->cancelAdjustment(
+            $id,
+            $_POST['canceled_reason'] ?? 'Admin hủy thưởng/phạt',
+            $_SESSION['user']['id'] ?? 0
+        );
 
         echo json_encode([
             'success' => $ok
         ]);
+
+        exit;
+    }
+
+    public function updateTransaction()
+    {
+        $this->role(['admin']);
+        header('Content-Type: application/json');
+
+        try {
+            $data = json_decode(file_get_contents('php://input'), true) ?: [];
+            $ok = (new SalaryModel())->updateAdjustment($data['id'] ?? 0, $data);
+
+            echo json_encode([
+                'success' => $ok,
+                'message' => $ok ? 'Đã cập nhật thưởng/phạt.' : 'Không thể sửa bản ghi đã hủy hoặc không tồn tại.'
+            ]);
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+
+        exit;
+    }
+
+    public function cancelTransaction()
+    {
+        $this->role(['admin']);
+        header('Content-Type: application/json');
+
+        try {
+            $data = json_decode(file_get_contents('php://input'), true) ?: [];
+            $ok = (new SalaryModel())->cancelAdjustment(
+                $data['id'] ?? 0,
+                $data['canceled_reason'] ?? '',
+                $_SESSION['user']['id'] ?? 0
+            );
+
+            echo json_encode([
+                'success' => $ok,
+                'message' => $ok ? 'Đã hủy thưởng/phạt.' : 'Bản ghi đã hủy hoặc không tồn tại.'
+            ]);
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
 
         exit;
     }

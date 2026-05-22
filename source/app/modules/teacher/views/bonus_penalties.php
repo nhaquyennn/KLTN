@@ -147,13 +147,13 @@
 
                         <div class="form-group">
                             <label class="form-label">Mức phạt</label>
-                            <input class="form-input" type="number" id="p-amount">
+                            <input class="form-input" type="number" id="p-amount" min="1000" max="100000000" step="1000">
 
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Lý do</label>
-                            <textarea class="form-input" id="p-reason"></textarea>
+                            <textarea class="form-input" id="p-reason" maxlength="500"></textarea>
                         </div>
 
                     </div>
@@ -304,7 +304,7 @@
                     align-items:center;
                     gap:8px">
 
-                                <input class="form-input" type="number" id="b-amount" placeholder="0" style="flex:1"
+                                <input class="form-input" type="number" id="b-amount" placeholder="0" style="flex:1" min="1000" max="100000000" step="1000"
                                     oninput="updateBonusPreview()">
 
                                 <span id="b-unit" style="
@@ -363,7 +363,7 @@
                                 Ghi chú
                             </label>
 
-                            <textarea class="form-input" id="b-note" placeholder="Ghi chú thêm..."
+                            <textarea class="form-input" id="b-note" placeholder="Ghi chú thêm..." maxlength="500"
                                 style="min-height:92px"></textarea>
 
                         </div>
@@ -383,11 +383,73 @@
 
             <!-- ================= HISTORY ================= -->
             <div id="tab-history" style="display:none">
+                <form method="GET" class="row g-2 align-items-end mb-3">
+                    <input type="hidden" name="module" value="teacher">
+                    <input type="hidden" name="action" value="bonus_penalties">
+                    <div class="col-md-2">
+                        <label class="form-label">Thang</label>
+                        <input type="number" name="month" value="<?= (int) $month ?>" min="1" max="12" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Nam</label>
+                        <input type="number" name="year" value="<?= (int) $year ?>" min="2000" max="2100" class="form-control">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Giao vien</label>
+                        <select name="teacher_id" class="form-select">
+                            <option value="">Tat ca</option>
+                            <?php foreach ($teachers as $teacher): ?>
+                                <option value="<?= (int) $teacher['teacher_id'] ?>" <?= (string) ($historyFilters['teacher_id'] ?? '') === (string) $teacher['teacher_id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($teacher['name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Loai lich su</label>
+                        <select name="kind" class="form-select">
+                            <?php foreach ([
+                                'all' => 'Tat ca',
+                                'reward' => 'Thuong',
+                                'penalty' => 'Phat',
+                                'canceled_reward' => 'Thuong da huy',
+                                'canceled_penalty' => 'Phat da huy',
+                                'canceled' => 'Tat ca da huy',
+                            ] as $kindValue => $kindLabel): ?>
+                                <option value="<?= $kindValue ?>" <?= ($historyFilters['kind'] ?? 'all') === $kindValue ? 'selected' : '' ?>>
+                                    <?= $kindLabel ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-primary w-100">Loc</button>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Tu ngay</label>
+                        <input type="date" name="from_date" value="<?= htmlspecialchars($historyFilters['from_date'] ?? '') ?>" class="form-control">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Den ngay</label>
+                        <input type="date" name="to_date" value="<?= htmlspecialchars($historyFilters['to_date'] ?? '') ?>" class="form-control">
+                    </div>
+                </form>
                 <?php if (!empty($history)): ?>
                     <?php foreach ($history as $h): ?>
                         <!-- Thêm ID để JavaScript xác định dòng cần xóa -->
                         <div class="hist-item d-flex justify-content-between align-items-center mb-3 p-3 border-bottom"
-                            id="penalty-row-<?= $h['id'] ?>">
+                            id="penalty-row-<?= $h['id'] ?>"
+                            data-adjustment='<?= htmlspecialchars(json_encode([
+                                'id' => (int) $h['id'],
+                                'teacher_id' => (int) $h['teacher_id'],
+                                'session_id' => $h['session_id'] ?? null,
+                                'type' => $h['type'],
+                                'amount' => (float) $h['amount'],
+                                'reason' => $h['reason'],
+                                'month' => (int) $h['month'],
+                                'year' => (int) $h['year'],
+                                'status' => $h['status'] ?? 'active',
+                            ], JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>'>
 
                             <div class="hist-left d-flex align-items-start">
                                 <div class="hist-dot mt-2 me-3"
@@ -488,6 +550,7 @@
 
     async function submitPenalty() {
         const teacherId = document.getElementById('p-teacher').value;
+        const sessionId = document.getElementById('p-session').value;
         const amount = Number(document.getElementById('p-amount').value || 0);
         const reason = document.getElementById('p-reason').value.trim();
 
@@ -504,6 +567,7 @@
         await saveTransaction({
             type: 'penalty',
             teacher_id: teacherId,
+            session_id: sessionId || null,
             amount: amount,
             reason: reason || 'Phạt giảng viên',
             month: window.APP_MONTH,
@@ -623,6 +687,65 @@
         } catch (error) {
             console.error("Lỗi kết nối:", error);
             alert("Không thể kết nối đến máy chủ.");
+        }
+    }
+
+    document.querySelectorAll('[data-adjustment]').forEach(function (row) {
+        const data = JSON.parse(row.dataset.adjustment || '{}');
+        const actionWrap = row.querySelector('.text-end');
+        const legacyCancelButton = actionWrap ? actionWrap.querySelector('button') : null;
+
+        if (!actionWrap || data.status === 'canceled') {
+            if (legacyCancelButton) legacyCancelButton.remove();
+            return;
+        }
+
+        const editButton = document.createElement('button');
+        editButton.type = 'button';
+        editButton.className = 'btn btn-outline-primary btn-sm me-2';
+        editButton.textContent = 'Sua';
+        editButton.addEventListener('click', function () {
+            editTransaction(data);
+        });
+        actionWrap.insertBefore(editButton, legacyCancelButton);
+
+        if (legacyCancelButton) {
+            legacyCancelButton.title = 'Huy ban ghi';
+        }
+    });
+
+    async function editTransaction(row) {
+        const amount = prompt('So tien:', row.amount);
+        if (amount === null) return;
+        const reason = prompt('Ly do:', row.reason || '');
+        if (reason === null) return;
+
+        try {
+            const response = await fetch('?module=teacher&action=updateTransaction', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: row.id,
+                    teacher_id: row.teacher_id,
+                    session_id: row.session_id,
+                    type: row.type,
+                    amount: amount,
+                    reason: reason,
+                    month: row.month,
+                    year: row.year
+                })
+            });
+            const data = await response.json();
+
+            if (!data.success) {
+                alert(data.message || 'Khong the sua thuong/phat.');
+                return;
+            }
+
+            window.location.reload();
+        } catch (error) {
+            console.error(error);
+            alert('Khong the ket noi may chu.');
         }
     }
 </script>

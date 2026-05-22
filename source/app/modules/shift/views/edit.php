@@ -20,18 +20,18 @@
 
                         <div class="mb-2">
                             <label>Tên ca</label>
-                            <input type="text" name="name" class="form-control" value="<?= $shift['name'] ?>">
+                            <input type="text" name="name" class="form-control" value="<?= $shift['name'] ?>" maxlength="50" required>
                         </div>
 
                         <div class="mb-2">
                             <label>Giờ bắt đầu</label>
-                            <input type="time" name="start_time" class="form-control"
+                            <input type="time" name="start_time" class="form-control" required
                                 value="<?= $shift['start_time'] ?>">
                         </div>
 
                         <div class="mb-2">
                             <label>Giờ kết thúc</label>
-                            <input type="time" name="end_time" class="form-control" value="<?= $shift['end_time'] ?>">
+                            <input type="time" name="end_time" class="form-control" value="<?= $shift['end_time'] ?>" required>
                         </div>
 
                         <button class="btn btn-primary">Cập nhật</button>

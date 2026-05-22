@@ -22,8 +22,8 @@ class PackageController extends Controller
         $limit = 5;
         $offset = ($page - 1) * $limit;
 
-        $packages = $model->getAll($keyword, $status, $limit, $offset);
-        $total = $model->countAll($keyword, $status);
+        $packages = $model->getAll($keyword, $status, $limit, $offset, $course_id);
+        $total = $model->countAll($keyword, $status, $course_id);
         $totalPages = ceil($total / $limit);
         $header = ROOT_PATH . "/modules/layouts/header_teacher.php";
 
@@ -42,15 +42,22 @@ class PackageController extends Controller
 
     public function store()
     {
-        $model = new PackageModel();
+        try {
+            $model = new PackageModel();
 
-        $model->create([
-            'name' => $_POST['name'],
-            'total_sessions' => $_POST['total_sessions'],
-            'price' => $_POST['price'],
-            'course_id' => $_POST['course_id'],
-            'status' => $_POST['status']
-        ]);
+            $model->create([
+                'name' => $_POST['name'],
+                'total_sessions' => $_POST['total_sessions'],
+                'price' => $_POST['price'],
+                'course_id' => $_POST['course_id'],
+                'status' => $_POST['status']
+            ]);
+            $_SESSION['success'] = 'Thêm gói học thành công';
+        } catch (Exception $e) {
+            $_SESSION['error'] = $e->getMessage();
+            header("Location: ?module=package&action=create");
+            exit;
+        }
 
         header("Location: ?module=package");
         exit;

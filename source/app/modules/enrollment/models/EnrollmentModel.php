@@ -8,6 +8,7 @@ class EnrollmentModel
     public function __construct()
     {
         $this->db = (new Database())->connect();
+        $this->ensureTuitionPaymentsTable();
     }
 
     public function getAll($filters, $limit, $offset)
@@ -202,7 +203,7 @@ class EnrollmentModel
         return $stmt->execute([$status, $id]);
     }
 
-    public function pay($id, $amount)
+    public function pay($id, $amount, $paymentMethod = 'CASH')
     {
         // Lấy dữ liệu hiện tại
         $stmt = $this->db->prepare("
@@ -246,20 +247,43 @@ class EnrollmentModel
             $paymentStatus = 'unpaid';
         }
 
-        // Update
-        $stmt = $this->db->prepare("
-        UPDATE enrollments
-        SET
-            paid_amount = ?,
-            payment_status = ?
-        WHERE enrollment_id = ?
-    ");
+        $this->db->beginTransaction();
 
-        return $stmt->execute([
-            $newPaid,
-            $paymentStatus,
-            $id
-        ]);
+        try {
+            // Keep the enrollment aggregate for old screens and add a ledger row for reports.
+            $stmt = $this->db->prepare("
+                UPDATE enrollments
+                SET
+                    paid_amount = ?,
+                    payment_status = ?,
+                    payment_method = ?,
+                    paid_at = NOW()
+                WHERE enrollment_id = ?
+            ");
+
+            $updated = $stmt->execute([
+                $newPaid,
+                $paymentStatus,
+                $paymentMethod,
+                $id
+            ]);
+
+            if (!$updated) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            $this->recordTuitionPayment($id, $amount, $paymentMethod);
+            $this->db->commit();
+
+            return true;
+        } catch (Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+
+            throw $e;
+        }
     }
 
     public function updateStatusIfCompleted($enrollment_id)
@@ -322,6 +346,10 @@ class EnrollmentModel
 
     public function paymentSuccess($enrollment_id, $transaction_code)
     {
+        if ($this->hasTuitionPaymentTransaction($transaction_code)) {
+            return true;
+        }
+
         // Lấy dữ liệu enrollment hiện tại
         $stmt = $this->db->prepare("
         SELECT paid_amount, final_fee
@@ -362,25 +390,48 @@ class EnrollmentModel
             $paymentStatus = 'unpaid';
         }
 
-        $sql = "
-        UPDATE enrollments
-        SET
-            payment_status = :payment_status,
-            transaction_code = :transaction_code,
-            payment_method = 'VNPay',
-            paid_at = NOW(),
-            paid_amount = :paid_amount
-        WHERE enrollment_id = :id
-    ";
+        if ($vnpAmount <= 0) {
+            return true;
+        }
 
-        $stmt = $this->db->prepare($sql);
+        $this->db->beginTransaction();
 
-        return $stmt->execute([
-            ':payment_status' => $paymentStatus,
-            ':transaction_code' => $transaction_code,
-            ':paid_amount' => $newPaid,
-            ':id' => $enrollment_id
-        ]);
+        try {
+            $sql = "
+                UPDATE enrollments
+                SET
+                    payment_status = :payment_status,
+                    transaction_code = :transaction_code,
+                    payment_method = 'VNPay',
+                    paid_at = NOW(),
+                    paid_amount = :paid_amount
+                WHERE enrollment_id = :id
+            ";
+
+            $stmt = $this->db->prepare($sql);
+            $updated = $stmt->execute([
+                ':payment_status' => $paymentStatus,
+                ':transaction_code' => $transaction_code,
+                ':paid_amount' => $newPaid,
+                ':id' => $enrollment_id
+            ]);
+
+            if (!$updated) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            $this->recordTuitionPayment($enrollment_id, $vnpAmount, 'VNPAY', $transaction_code);
+            $this->db->commit();
+
+            return true;
+        } catch (Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+
+            throw $e;
+        }
     }
 
     public function findById($id)
@@ -395,5 +446,59 @@ class EnrollmentModel
         $stmt->execute([$id]);
 
         return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    private function ensureTuitionPaymentsTable()
+    {
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS tuition_payments (
+                payment_id INT AUTO_INCREMENT PRIMARY KEY,
+                enrollment_id INT NOT NULL,
+                amount DECIMAL(12,2) NOT NULL,
+                payment_method VARCHAR(30) NOT NULL DEFAULT 'CASH',
+                transaction_code VARCHAR(100) NULL,
+                paid_at DATETIME NOT NULL,
+                created_by INT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                KEY idx_tuition_payments_enrollment (enrollment_id),
+                KEY idx_tuition_payments_paid_at (paid_at),
+                UNIQUE KEY uq_tuition_payments_transaction_code (transaction_code)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        ");
+    }
+
+    private function recordTuitionPayment($enrollmentId, $amount, $paymentMethod, $transactionCode = null)
+    {
+        $stmt = $this->db->prepare("
+            INSERT INTO tuition_payments
+                (enrollment_id, amount, payment_method, transaction_code, paid_at, created_by)
+            VALUES
+                (:enrollment_id, :amount, :payment_method, :transaction_code, NOW(), :created_by)
+        ");
+
+        $stmt->execute([
+            ':enrollment_id' => (int) $enrollmentId,
+            ':amount' => (float) $amount,
+            ':payment_method' => strtoupper((string) $paymentMethod),
+            ':transaction_code' => $transactionCode ?: null,
+            ':created_by' => $_SESSION['user']['user_id'] ?? null,
+        ]);
+    }
+
+    private function hasTuitionPaymentTransaction($transactionCode)
+    {
+        if (!$transactionCode) {
+            return false;
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT 1
+            FROM tuition_payments
+            WHERE transaction_code = ?
+            LIMIT 1
+        ");
+        $stmt->execute([$transactionCode]);
+
+        return (bool) $stmt->fetchColumn();
     }
 }

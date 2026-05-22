@@ -4,7 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from recognition import (
     enroll_face,    
     recognize_face,
-    reset_enroll_session
+    reset_enroll_session,
+    verify_liveness_challenge
 )
 
 app = FastAPI()
@@ -67,5 +68,21 @@ async def recognize(
     image_bytes = await image.read()
 
     result = await recognize_face(image_bytes)
+
+    return result
+
+
+@app.post("/liveness/verify")
+async def liveness_verify(
+    front: UploadFile = File(...),
+    left: UploadFile = File(...),
+    right: UploadFile = File(...)
+):
+
+    result = await verify_liveness_challenge(
+        await front.read(),
+        await left.read(),
+        await right.read()
+    )
 
     return result

@@ -22,14 +22,14 @@
                 <form action="index.php?module=auth&action=handleLogin" method="POST">
 
                     <div class="form-group position-relative has-icon-left mb-4">
-                        <input type="text" name="email" class="form-control" placeholder="Email">
+                        <input type="email" name="email" class="form-control" placeholder="Email" maxlength="150" required>
                         <div class="form-control-icon">
                             <i class="bi bi-person"></i>
                         </div>
                     </div>
 
                     <div class="form-group position-relative has-icon-left mb-4">
-                        <input type="password" name="password" class="form-control" placeholder="Mật khẩu">
+                        <input type="password" name="password" class="form-control" placeholder="Mật khẩu" maxlength="255" required>
                         <div class="form-control-icon">
                             <i class="bi bi-shield-lock"></i>
                         </div>

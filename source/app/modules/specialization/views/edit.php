@@ -47,6 +47,7 @@
                             <input type="text"
                                 name="name"
                                 class="form-control"
+                                maxlength="100"
                                 value="<?= htmlspecialchars($specialization['name']) ?>"
                                 required>
 
@@ -61,6 +62,7 @@
 
                             <textarea name="description"
                                 class="form-control"
+                                maxlength="1000"
                                 rows="4"><?= htmlspecialchars($specialization['description']) ?></textarea>
 
                         </div>

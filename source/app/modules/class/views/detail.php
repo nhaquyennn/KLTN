@@ -66,7 +66,7 @@
 
             <div class="d-flex gap-2">
                 <a href="?module=class&action=edit&id=<?= $class['class_id'] ?>" class="btn btn-warning">
-                    Edit
+                    Sửa
                 </a>
 
                 <a href="?module=session&action=calendar&class_id=<?= $class['class_id'] ?>" class="btn btn-primary">

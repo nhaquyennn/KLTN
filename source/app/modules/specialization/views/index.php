@@ -123,7 +123,7 @@
                                     <a href="?module=specialization"
                                         class="btn btn-secondary">
 
-                                        Reset
+                                        Đặt lại
                                     </a>
 
                                 </div>
@@ -149,7 +149,7 @@
 
                                         <th>Trạng thái</th>
 
-                                        <th width="180">Action</th>
+                                        <th width="180">Thao tác</th>
 
                                     </tr>
 

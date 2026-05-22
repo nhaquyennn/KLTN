@@ -54,7 +54,17 @@ class CourseModel
     // =========================
     public function create($data)
     {
-        $code = $this->generateCourseCode($data['name']);
+        $name = trim((string) ($data['name'] ?? ''));
+
+        if ($name === '') {
+            throw new Exception('Vui lòng nhập tên khóa học');
+        }
+
+        if ($this->nameExists($name)) {
+            throw new Exception('Tên khóa học đã tồn tại');
+        }
+
+        $code = $this->generateCourseCode($name);
 
         $stmt = $this->db->prepare("
         INSERT INTO courses (name, description, status, code)
@@ -62,7 +72,7 @@ class CourseModel
     ");
 
         return $stmt->execute([
-            $data['name'],
+            $name,
             $data['description'],
             $data['status'],
             $code
@@ -140,5 +150,17 @@ class CourseModel
         }
 
         return 'CRS';
+    }
+
+    private function nameExists($name)
+    {
+        $stmt = $this->db->prepare("
+            SELECT 1
+            FROM courses
+            WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
+            LIMIT 1
+        ");
+        $stmt->execute([$name]);
+        return (bool) $stmt->fetchColumn();
     }
 }

@@ -10,7 +10,14 @@
         <div class="page-title">
             <div class="row">
                 <div class="col-12 col-md-6 mb-3">
+                    <?php if (!empty($pageTitle)): ?>
+                        <h3><?= htmlspecialchars($pageTitle) ?></h3>
+                        <?php if (!empty($teacher)): ?>
+                            <div class="text-muted"><?= htmlspecialchars($teacher['email'] ?? '') ?></div>
+                        <?php endif; ?>
+                    <?php else: ?>
                     <h3>Lịch sử dạy</h3>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -39,7 +46,10 @@
                             <!-- BỘ LỌC -->
                             <form method="GET" class="mb-4">
                                 <input type="hidden" name="module" value="teacher">
-                                <input type="hidden" name="action" value="history">
+                                <input type="hidden" name="action" value="<?= htmlspecialchars($filterAction ?? 'history') ?>">
+                                <?php if (!empty($teacher['teacher_id'])): ?>
+                                    <input type="hidden" name="id" value="<?= (int) $teacher['teacher_id'] ?>">
+                                <?php endif; ?>
 
                                 <div class="row g-3">
                                     <div class="col-md-3">
@@ -64,7 +74,10 @@
                                     </div>
                                     <div class="col-md-3">
                                         <button type="submit" class="btn btn-primary">Lọc dữ liệu</button>
-                                        <a href="?module=teacher&action=history" class="btn btn-secondary">Reset</a>
+                                        <a href="<?= htmlspecialchars($resetUrl ?? '?module=teacher&action=history') ?>" class="btn btn-secondary">Đặt lại</a>
+                                        <?php if (!empty($teacher)): ?>
+                                            <a href="?module=teacher&action=index" class="btn btn-outline-secondary">Quay lại danh sách</a>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </form>

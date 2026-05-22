@@ -5,6 +5,7 @@ $roleLabels = [
     'parent' => 'Phụ huynh',
     'student' => 'Học viên'
 ];
+$showDeleted = !empty($showDeleted);
 ?>
 
 <div id="main">
@@ -17,18 +18,36 @@ $roleLabels = [
     <div class="page-heading">
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
             <div>
-                <h3 class="mb-1">Quản lý tài khoản</h3>
+                <h3 class="mb-1"><?= $showDeleted ? 'Tài khoản đã xóa' : 'Quản lý tài khoản' ?></h3>
                 <nav class="breadcrumb-header">
                     <ol class="breadcrumb mb-0">
                         <li class="breadcrumb-item"><a href="?module=dashboard&action=index">Trang chủ</a></li>
-                        <li class="breadcrumb-item active">Tài khoản</li>
+                        <?php if ($showDeleted): ?>
+                            <li class="breadcrumb-item"><a href="?module=account&action=index">Tài khoản</a></li>
+                            <li class="breadcrumb-item active">Đã xóa</li>
+                        <?php else: ?>
+                            <li class="breadcrumb-item active">Tài khoản</li>
+                        <?php endif; ?>
                     </ol>
                 </nav>
             </div>
-            <a href="?module=account&action=create" class="btn btn-primary">
-                <i class="bi bi-person-plus"></i>
-                Tạo tài khoản
-            </a>
+            <div class="d-flex flex-wrap gap-2">
+                <?php if ($showDeleted): ?>
+                    <a href="?module=account&action=index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i>
+                        Danh sách tài khoản
+                    </a>
+                <?php else: ?>
+                    <a href="?module=account&action=deleted" class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                        Xem tài khoản đã xóa
+                    </a>
+                    <a href="?module=account&action=create" class="btn btn-primary">
+                        <i class="bi bi-person-plus"></i>
+                        Tạo tài khoản
+                    </a>
+                <?php endif; ?>
+            </div>
         </div>
 
         <?php if (!empty($_SESSION['success'])): ?>
@@ -42,10 +61,10 @@ $roleLabels = [
             <div class="card-body">
                 <form method="GET" class="row g-2 mb-3">
                     <input type="hidden" name="module" value="account">
-                    <input type="hidden" name="action" value="index">
+                    <input type="hidden" name="action" value="<?= $showDeleted ? 'deleted' : 'index' ?>">
 
                     <div class="col-md-4">
-                        <input type="text" name="keyword" class="form-control"
+                        <input type="text" name="keyword" class="form-control" maxlength="100"
                             placeholder="Tên / email / số điện thoại"
                             value="<?= htmlspecialchars($filters['keyword'] ?? '') ?>">
                     </div>
@@ -71,7 +90,7 @@ $roleLabels = [
 
                     <div class="col-md-3">
                         <button class="btn btn-primary">Lọc</button>
-                        <a href="?module=account&action=index" class="btn btn-secondary">Reset</a>
+                        <a href="?module=account&action=<?= $showDeleted ? 'deleted' : 'index' ?>" class="btn btn-secondary">Đặt lại</a>
                     </div>
                 </form>
 
@@ -99,7 +118,7 @@ $roleLabels = [
                                         <td><?= htmlspecialchars($account['phone'] ?? '') ?></td>
                                         <td><?= htmlspecialchars($roleLabels[$account['role']] ?? $account['role']) ?></td>
                                         <td>
-                                            <?php if ((int) ($account['has_password'] ?? 1) === 0): ?>
+                                            <?php if ($showDeleted): ?>
                                                 <span class="badge bg-danger">Đã xóa tài khoản</span>
                                             <?php elseif ((int) ($account['status'] ?? 0) === 1): ?>
                                                 <span class="badge bg-success">Hoạt động</span>
@@ -109,31 +128,45 @@ $roleLabels = [
                                         </td>
                                         <td><?= htmlspecialchars($account['created_at'] ?? '') ?></td>
                                         <td class="text-center">
-                                            <a href="?module=account&action=edit&id=<?= (int) $account['user_id'] ?>"
-                                                class="btn btn-sm btn-warning">
-                                                Sửa
-                                            </a>
-                                            <?php if ((int) ($account['has_password'] ?? 1) === 0): ?>
-                                                <span class="text-muted small">Nhập mật khẩu mới để tạo lại</span>
-                                            <?php elseif ((int) ($account['status'] ?? 0) === 1): ?>
-                                                <a href="?module=account&action=lock&id=<?= (int) $account['user_id'] ?>"
-                                                    class="btn btn-sm btn-secondary"
-                                                    onclick="return confirm('Khóa tài khoản này?')">
-                                                    Khóa
+                                            <?php if ($showDeleted): ?>
+                                                <a href="?module=account&action=restore&id=<?= (int) $account['user_id'] ?>"
+                                                    class="btn btn-sm btn-success"
+                                                    onclick="return confirm('Khôi phục tài khoản này?')">
+                                                    Khôi phục
+                                                </a>
+                                                <a href="?module=account&action=forceDelete&id=<?= (int) $account['user_id'] ?>"
+                                                    class="btn btn-sm btn-danger"
+                                                    onclick="return confirm('Xóa hẳn tài khoản này? Thao tác này không thể hoàn tác.')">
+                                                    Xóa hẳn
                                                 </a>
                                             <?php else: ?>
-                                                <a href="?module=account&action=unlock&id=<?= (int) $account['user_id'] ?>"
-                                                    class="btn btn-sm btn-success"
-                                                    onclick="return confirm('Mở khóa tài khoản này?')">
-                                                    Mở khóa
+                                                <a href="?module=account&action=edit&id=<?= (int) $account['user_id'] ?>"
+                                                    class="btn btn-sm btn-warning">
+                                                    Sửa
                                                 </a>
-                                            <?php endif; ?>
-                                            <?php if ((int) $account['user_id'] !== (int) ($_SESSION['user']['id'] ?? 0) && (int) ($account['has_password'] ?? 1) === 1): ?>
-                                                <a href="?module=account&action=delete&id=<?= (int) $account['user_id'] ?>"
-                                                    class="btn btn-sm btn-danger"
-                                                    onclick="return confirm('Xóa tài khoản đăng nhập này? Thông tin người dùng vẫn được giữ nguyên.')">
-                                                    Xóa tài khoản
-                                                </a>
+                                                <?php if ((int) ($account['status'] ?? 0) === 1): ?>
+                                                    <a href="?module=account&action=lock&id=<?= (int) $account['user_id'] ?>"
+                                                        class="btn btn-sm btn-secondary"
+                                                        onclick="return confirm('Khóa tài khoản này?')">
+                                                        Khóa
+                                                    </a>
+                                                <?php else: ?>
+                                                    <a href="?module=account&action=unlock&id=<?= (int) $account['user_id'] ?>"
+                                                        class="btn btn-sm btn-success"
+                                                        onclick="return confirm('Mở khóa tài khoản này?')">
+                                                        Mở khóa
+                                                    </a>
+                                                <?php endif; ?>
+                                                <?php if ((int) $account['user_id'] !== (int) ($_SESSION['user']['id'] ?? 0)): ?>
+                                                    <a href="?module=account&action=delete&id=<?= (int) $account['user_id'] ?>"
+                                                        class="btn btn-sm btn-danger"
+                                                        onclick="return confirm('Xóa tài khoản đăng nhập này? Tài khoản sẽ chuyển sang danh sách đã xóa.')">
+                                                        Xóa tài khoản
+                                                    </a>
+                                                <?php endif; ?>
+                                                <?php if ((int) ($account['has_password'] ?? 1) === 0): ?>
+                                                    <div class="text-muted small mt-1">Cần cập nhật mật khẩu để đăng nhập.</div>
+                                                <?php endif; ?>
                                             <?php endif; ?>
                                         </td>
                                     </tr>
@@ -153,7 +186,7 @@ $roleLabels = [
                             <?php
                             $baseQuery = [
                                 'module' => 'account',
-                                'action' => 'index',
+                                'action' => $showDeleted ? 'deleted' : 'index',
                                 'keyword' => $filters['keyword'] ?? '',
                                 'role' => $filters['role'] ?? '',
                                 'status' => $filters['status'] ?? ''

@@ -6,6 +6,9 @@
     </header>
 
     <div class="page-heading">
+        <?php if (!empty($_SESSION['error'])): ?>
+            <div class="alert alert-danger"><?= htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?></div>
+        <?php endif; ?>
         <section class="section">
             <div class="card">
                 <div class="card-header">
@@ -19,13 +22,13 @@
                             <!-- TÊN PHÒNG -->
                             <div class="mb-3">
                                 <label class="form-label">Tên phòng</label>
-                                <input type="text" name="name" class="form-control" required>
+                                <input type="text" name="name" class="form-control" maxlength="50" required>
                             </div>
 
                             <!-- SỨC CHỨA -->
                             <div class="mb-3">
                                 <label class="form-label">Sức chứa</label>
-                                <input type="number" name="capacity" class="form-control" min="1" required>
+                                <input type="number" name="capacity" class="form-control" min="1" max="500" step="1" required>
                             </div>
 
                             <!-- TRẠNG THÁI -->

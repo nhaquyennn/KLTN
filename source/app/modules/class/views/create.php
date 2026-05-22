@@ -55,12 +55,12 @@
                             <!-- START DATE -->
                             <div class="col-md-6">
                                 <label>Ngày bắt đầu</label>
-                                <input type="date" name="start_date" class="form-control" required>
+                                <input type="date" name="start_date" class="form-control" min="<?= date('Y-m-d') ?>" required>
                             </div>
 
                             <div class="col-md-6">
                                 <label>Số học viên tối đa</label>
-                                <input type="number" name="max_students" class="form-control" min="1" value="10" required>
+                                <input type="number" name="max_students" class="form-control" min="1" max="200" step="1" value="10" required>
                             </div>
 
                         </div>

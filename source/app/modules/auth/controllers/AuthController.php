@@ -31,7 +31,7 @@ class AuthController extends Controller
 
         $user = $result;
 
-        if ($user['status'] == 0) {
+        if ($user['status'] == 0 || !empty($user['deleted_at'])) {
             $_SESSION['error'] = "Tài khoản bị khóa";
             header("Location: ?module=auth&action=login");
             exit;
@@ -54,8 +54,7 @@ class AuthController extends Controller
                 break;
 
             case 'teacher':
-                header("Location: ?module=class&action=index");
-                // hoặc teacher landing page bạn muốn
+                header("Location: ?module=teacherDashboard&action=index");
                 break;
 
             case 'parent':
@@ -147,7 +146,7 @@ class AuthController extends Controller
             exit;
         }
 
-        if ((int) $user['status'] === 0) {
+        if ((int) $user['status'] === 0 || !empty($user['deleted_at'])) {
             $_SESSION['error'] = "Tài khoản đang bị khóa";
             header("Location: ?module=auth&action=forgotPassword");
             exit;

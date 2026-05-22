@@ -28,7 +28,7 @@
                                         <label>Khóa học</label>
                                     </div>
                                     <div class="col-lg-8 col-8">
-                                        <select name="course_id" class="form-control">
+                                        <select name="course_id" class="form-control" required>
                                             <?php foreach ($courses as $c): ?>
                                                 <option value="<?= $c['course_id'] ?>"
                                                     <?= $c['course_id'] == $package['course_id'] ? 'selected' : '' ?>>
@@ -47,7 +47,7 @@
                                         <label>Tên gói</label>
                                     </div>
                                     <div class="col-lg-8 col-8">
-                                        <input type="text" name="name" class="form-control"
+                                        <input type="text" name="name" class="form-control" maxlength="100" required
                                             value="<?= htmlspecialchars($package['name']) ?>">
                                     </div>
                                 </div>
@@ -60,7 +60,7 @@
                                         <label>Số buổi</label>
                                     </div>
                                     <div class="col-lg-8 col-8">
-                                        <input type="number" name="total_sessions" class="form-control"
+                                        <input type="number" name="total_sessions" class="form-control" min="1" max="500" step="1" required
                                             value="<?= $package['total_sessions'] ?>">
                                     </div>
                                 </div>
@@ -73,7 +73,7 @@
                                         <label>Giá (VNĐ)</label>
                                     </div>
                                     <div class="col-lg-8 col-8">
-                                        <input type="number" name="price" class="form-control"
+                                        <input type="number" name="price" class="form-control" min="0" max="1000000000" step="1000" required
                                             value="<?= $package['price'] ?>">
                                     </div>
                                 </div>
@@ -88,9 +88,9 @@
                                     <div class="col-lg-8 col-8">
                                         <select name="status" class="form-control">
                                             <option value="active" <?= $package['status'] == 'active' ? 'selected' : '' ?>>
-                                                Active
+                                                Hoạt động
                                             </option>
-                                            <option value="inactive" <?= $package['status'] == 'inactive' ? 'selected' : '' ?>>Inactive
+                                            <option value="inactive" <?= $package['status'] == 'inactive' ? 'selected' : '' ?>>Ngưng hoạt động
                                             </option>
                                         </select>
                                     </div>

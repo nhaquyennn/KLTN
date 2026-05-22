@@ -20,7 +20,7 @@
                         <div class="row">
 
                             <!-- TÊN KHÓA -->
-                            <select name="course_id" class="form-control">
+                            <select name="course_id" class="form-control" required>
                                 <?php foreach ($courses as $c): ?>
                                     <option value="<?= $c['course_id'] ?>" <?= $c['course_id'] == $package['course_id'] ? 'selected' : '' ?>>
                                         <?= $c['name'] ?>
@@ -32,9 +32,9 @@
                             <div class="col-md-6 mb-3">
                                 <label>Trạng thái</label>
                                 <select name="status" class="form-control">
-                                    <option value="active" <?= $course['status'] == 'active' ? 'selected' : '' ?>>Active
+                                    <option value="active" <?= $course['status'] == 'active' ? 'selected' : '' ?>>Hoạt động
                                     </option>
-                                    <option value="inactive" <?= $course['status'] == 'inactive' ? 'selected' : '' ?>>Inactive
+                                    <option value="inactive" <?= $course['status'] == 'inactive' ? 'selected' : '' ?>>Ngưng hoạt động
                                     </option>
                                 </select>
                             </div>
@@ -42,7 +42,7 @@
                             <!-- MÔ TẢ -->
                             <div class="col-12 mb-3">
                                 <label>Mô tả</label>
-                                <textarea name="description"
+                                <textarea name="description" maxlength="1000"
                                     class="form-control"><?= htmlspecialchars($course['description']) ?></textarea>
                             </div>
 

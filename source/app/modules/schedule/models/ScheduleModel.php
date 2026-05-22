@@ -118,25 +118,48 @@ class ScheduleModel
     // =========================
     public function create($data, $days)
     {
-        $this->db->beginTransaction();
+        $name = trim((string) ($data['name'] ?? ''));
+        $code = trim((string) ($data['code'] ?? ''));
+        $days = array_values(array_unique(array_filter(array_map('intval', (array) $days))));
 
-        $stmt = $this->db->prepare("
-            INSERT INTO schedules (name, code)
-            VALUES (?, ?)
-        ");
-        $stmt->execute([$data['name'], $data['code']]);
-
-        $schedule_id = $this->db->lastInsertId();
-
-        foreach ($days as $day) {
-            $stmt = $this->db->prepare("
-                INSERT INTO schedule_days (schedule_id, day_of_week)
-                VALUES (?, ?)
-            ");
-            $stmt->execute([$schedule_id, $day]);
+        if ($name === '' || empty($days)) {
+            throw new Exception('Vui lòng nhập tên lịch và chọn ít nhất một ngày học');
         }
 
-        $this->db->commit();
+        if ($this->nameExists($name)) {
+            throw new Exception('Tên lịch học đã tồn tại');
+        }
+
+        if ($code !== '' && $this->codeExists($code)) {
+            throw new Exception('Mã lịch học đã tồn tại');
+        }
+
+        $this->db->beginTransaction();
+
+        try {
+            $stmt = $this->db->prepare("
+                INSERT INTO schedules (name, code)
+                VALUES (?, ?)
+            ");
+            $stmt->execute([$name, $code !== '' ? $code : null]);
+
+            $schedule_id = $this->db->lastInsertId();
+
+            foreach ($days as $day) {
+                $stmt = $this->db->prepare("
+                    INSERT INTO schedule_days (schedule_id, day_of_week)
+                    VALUES (?, ?)
+                ");
+                $stmt->execute([$schedule_id, $day]);
+            }
+
+            $this->db->commit();
+        } catch (Exception $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $e;
+        }
     }
 
     // =========================
@@ -194,5 +217,29 @@ class ScheduleModel
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
 
         return $stmt->execute();
+    }
+
+    private function nameExists($name)
+    {
+        $stmt = $this->db->prepare("
+            SELECT 1
+            FROM schedules
+            WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
+            LIMIT 1
+        ");
+        $stmt->execute([$name]);
+        return (bool) $stmt->fetchColumn();
+    }
+
+    private function codeExists($code)
+    {
+        $stmt = $this->db->prepare("
+            SELECT 1
+            FROM schedules
+            WHERE LOWER(TRIM(code)) = LOWER(TRIM(?))
+            LIMIT 1
+        ");
+        $stmt->execute([$code]);
+        return (bool) $stmt->fetchColumn();
     }
 }

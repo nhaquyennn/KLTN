@@ -3,6 +3,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 session_start();
+date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 // =========================
 // CONFIG
@@ -97,6 +98,7 @@ $db= new PDO(
 );
 
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$db->exec("SET time_zone = '+07:00'");
 
 $controller = new $controllerName($db);
 

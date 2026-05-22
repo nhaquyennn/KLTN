@@ -6,6 +6,9 @@
     </header>
 
     <div class="page-heading">
+        <?php if (!empty($_SESSION['error'])): ?>
+            <div class="alert alert-danger"><?= htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?></div>
+        <?php endif; ?>
         <section class="section">
             <div class="card">
                 <div class="card-header">
@@ -33,27 +36,27 @@
                             <!-- TÊN -->
                             <div class="col-md-6">
                                 <label>Tên gói</label>
-                                <input type="text" name="name" class="form-control" required>
+                                <input type="text" name="name" class="form-control" maxlength="100" required>
                             </div>
 
                             <!-- SỐ BUỔI -->
                             <div class="col-md-6">
                                 <label>Số buổi</label>
-                                <input type="number" name="session_total" class="form-control" min="1" required>
+                                <input type="number" name="total_sessions" class="form-control" min="1" max="500" step="1" required>
                             </div>
 
                             <!-- GIÁ -->
                             <div class="col-md-6">
                                 <label>Giá</label>
-                                <input type="number" name="price" class="form-control" min="0" required>
+                                <input type="number" name="price" class="form-control" min="0" max="1000000000" step="1000" required>
                             </div>
 
                             <!-- TRẠNG THÁI -->
                             <div class="col-md-6">
                                 <label>Trạng thái</label>
                                 <select name="status" class="form-control">
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
+                                    <option value="active">Hoạt động</option>
+                                    <option value="inactive">Ngưng hoạt động</option>
                                 </select>
                             </div>
 

@@ -6,6 +6,9 @@
     </header>
 
     <div class="page-heading">
+        <?php if (!empty($_SESSION['error'])): ?>
+            <div class="alert alert-danger"><?= htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?></div>
+        <?php endif; ?>
         <section class="section">
             <div class="card">
                 <div class="card-header">
@@ -13,13 +16,13 @@
                 </div>
 
                 <div class="card-body">
-                    <form method="POST" action="?module=schedule&action=store">
+                    <form method="POST" action="?module=schedule&action=store" id="scheduleForm">
 
                         <label>Tên lịch</label>
-                        <input type="text" name="name" class="form-control">
+                        <input type="text" name="name" class="form-control" maxlength="100" required>
 
                         <label>Code</label>
-                        <input type="text" name="code" class="form-control">
+                        <input type="text" name="code" class="form-control" maxlength="50" pattern="[A-Za-z0-9_-]+">
 
                         <label>Ngày học</label><br>
 
@@ -50,3 +53,12 @@
         </section>
     </div>
 </div>
+
+<script>
+document.getElementById('scheduleForm')?.addEventListener('submit', function (event) {
+    if (!this.querySelector('input[name="days[]"]:checked')) {
+        event.preventDefault();
+        alert('Vui lòng chọn ít nhất một ngày học.');
+    }
+});
+</script>
