@@ -3,9 +3,9 @@
 return [
     /*
      * URL ngrok cua PHP web app chay qua XAMPP port 80.
-     * Cap nhat tu ngrok local API khi public tunnel thay doi.
+     * Vi du: https://your-php-web.ngrok-free.app
      */
-    'php_web_base_url' => 'https://sludge-barricade-poncho.ngrok-free.dev',
+    'php_web_base_url' => '',
 
     /*
      * FastAPI AI server chay local tren may chu PHP.
